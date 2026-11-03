@@ -1,11 +1,11 @@
-# POSTER MAKER PRO v2.5
+# POSTER MAKER PRO v2.6
 
-## Novedad: Fondo dinámico con tu foto
-- Al cargar una imagen, se coloca automáticamente como fondo temporal de la aplicación.
-- Control para mostrar u ocultar el fondo.
-- Ajustes de intensidad y desenfoque para mantener legibles los controles.
-- Restaurar el fondo original de la interfaz.
-- El fondo no modifica ni afecta la imagen que se imprime; utiliza la foto original cargada.
+## Novedad: Configuración del fondo dinámico
+- Los controles del fondo dinámico ahora están dentro del botón **Configuración** del encabezado.
+- El panel permanece cerrado al entrar para dejar más espacio al diseñador.
+- La foto cargada sigue aplicándose automáticamente como fondo temporal.
+- Desde Configuración puedes mostrar/ocultar el fondo, ajustar intensidad y desenfoque, o volver al fondo original.
+- Los controles se habilitan al cargar una imagen. El fondo no modifica la imagen de impresión.
 
 ## Actualización
-Reemplaza los archivos del proyecto en la raíz de GitHub Pages y recarga la PWA.
+Reemplaza los archivos del proyecto en la raíz de GitHub Pages y recarga la PWA. La caché se actualizó a v2.6.

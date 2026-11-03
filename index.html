@@ -99,8 +99,12 @@ body.touch-device .preview{min-height:180px}
 
 
 .appBackgroundTools{max-width:1160px;margin:12px auto 4px;padding:12px 14px;border:1px solid rgba(93,229,255,.28);border-radius:15px;background:rgba(8,16,30,.72);backdrop-filter:blur(18px);box-shadow:0 8px 28px #0004}
-.appBackgroundTools[hidden]{display:none!important}.appBackgroundHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px}.appBackgroundHead b{color:var(--cyan)}.appBackgroundHead span{font-size:11px;color:var(--muted)}.appBackgroundTools .row{gap:8px}.appBackgroundTools button{padding:9px 11px;font-size:12px}.appBackgroundTools input[type=range]{width:100%;accent-color:var(--cyan);padding:0;background:transparent}
-@media(max-width:820px){.appBackgroundTools{margin:10px 12px 4px}}
+.headerActions{display:flex;justify-content:flex-end;margin-top:12px}
+.settingsToggle{padding:9px 14px;font-size:13px;border-color:rgba(93,229,255,.32);background:rgba(13,24,43,.82)}
+.appBackgroundTools[hidden]{display:none!important}
+.appBackgroundTools{margin:10px 0 4px;animation:settingsIn .2s ease-out}
+@keyframes settingsIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}.appBackgroundHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px}.appBackgroundHead b{color:var(--cyan)}.appBackgroundHead span{font-size:11px;color:var(--muted)}.appBackgroundTools .row{gap:8px}.appBackgroundTools button{padding:9px 11px;font-size:12px}.appBackgroundTools input[type=range]{width:100%;accent-color:var(--cyan);padding:0;background:transparent}
+@media(max-width:820px){.appBackgroundTools{margin:10px 0 4px}.headerActions{margin-top:10px}}
 .appNav{max-width:1000px;margin:8px auto 14px;padding:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#0c1424;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:20;backdrop-filter:blur(18px)}
 .navTab{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 8px;background:transparent;color:var(--muted);border:1px solid transparent;border-radius:11px;font-size:13px}
 .navTab span{font-size:16px}.navTab.active{background:linear-gradient(110deg,#163d50,#302752);border-color:#5de5ff66;color:#fff;box-shadow:0 0 0 1px #5de5ff22 inset}
@@ -144,18 +148,20 @@ body.touch-device .preview{min-height:180px}
 </style>
 </head>
 <body>
-<header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div><div class="appBackgroundTools" id="appBackgroundTools" hidden>
- <div class="appBackgroundHead"><b>🌌 Fondo dinámico</b><span id="backgroundState">Tu imagen como fondo</span></div>
- <div class="row">
-  <button type="button" class="secondary" id="togglePhotoBg">Ocultar fondo</button>
-  <button type="button" class="secondary" id="resetPhotoBg">Fondo original</button>
- </div>
- <div class="row">
-  <div><label>Intensidad <b id="bgOpacityValue">32%</b></label><input id="bgOpacity" type="range" min="10" max="65" value="32"></div>
-  <div><label>Desenfoque <b id="bgBlurValue">2 px</b></label><input id="bgBlur" type="range" min="0" max="14" value="2"></div>
- </div>
- <small>Al cargar una foto, se usa automáticamente como fondo temporal de la aplicación. No modifica tu imagen de impresión.</small>
-</div>
+<header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div>
+ <div class="headerActions"><button type="button" class="secondary settingsToggle" id="settingsToggle" aria-expanded="false" aria-controls="appBackgroundTools">⚙️ Configuración</button></div>
+ <section class="appBackgroundTools" id="appBackgroundTools" hidden>
+  <div class="appBackgroundHead"><b>🌌 Fondo dinámico</b><span id="backgroundState">Sube una imagen para activar el fondo</span></div>
+  <div class="row">
+   <button type="button" class="secondary" id="togglePhotoBg" disabled>Ocultar fondo</button>
+   <button type="button" class="secondary" id="resetPhotoBg">Fondo original</button>
+  </div>
+  <div class="row">
+   <div><label>Intensidad <b id="bgOpacityValue">32%</b></label><input id="bgOpacity" type="range" min="10" max="65" value="32" disabled></div>
+   <div><label>Desenfoque <b id="bgBlurValue">2 px</b></label><input id="bgBlur" type="range" min="0" max="14" value="2" disabled></div>
+  </div>
+  <small>Al cargar una foto, se usa automáticamente como fondo temporal de la aplicación. No modifica tu imagen de impresión.</small>
+ </section>
 </header>
 <nav class="appNav" aria-label="Secciones de Poster Maker">
  <button type="button" class="navTab active" data-page="pageDesign"><span>🖼️</span><b>Diseñador</b></button>
@@ -425,10 +431,17 @@ function setPhotoBackground(active){
  document.body.style.setProperty('--app-photo',photoBackgroundActive?`url(\"${imgUrl}\")`:'none');
  document.body.style.setProperty('--photo-opacity',photoBackgroundActive?(Number($('bgOpacity')?.value||32)/100):0);
  document.body.style.setProperty('--photo-blur',`${Number($('bgBlur')?.value||2)}px`);
- $('appBackgroundTools').hidden=!imgUrl;
+ $('togglePhotoBg').disabled=!imgUrl;
+ $('bgOpacity').disabled=!imgUrl;
+ $('bgBlur').disabled=!imgUrl;
  $('togglePhotoBg').textContent=photoBackgroundActive?'Ocultar fondo':'Mostrar fondo';
- $('backgroundState').textContent=photoBackgroundActive?'Fondo de tu foto activo':'Fondo de tu foto oculto';
+ $('backgroundState').textContent=!imgUrl?'Sube una imagen para activar el fondo':(photoBackgroundActive?'Fondo de tu foto activo':'Fondo de tu foto oculto');
 }
+$('settingsToggle').addEventListener('click',()=>{
+ const panel=$('appBackgroundTools');const opening=panel.hidden;
+ panel.hidden=!opening;$('settingsToggle').setAttribute('aria-expanded',String(opening));
+ $('settingsToggle').textContent=opening?'✕ Cerrar configuración':'⚙️ Configuración';
+});
 $('togglePhotoBg').addEventListener('click',()=>setPhotoBackground(!photoBackgroundActive));
 $('resetPhotoBg').addEventListener('click',()=>{ $('bgOpacity').value=32;$('bgBlur').value=2;$('bgOpacityValue').textContent='32%';$('bgBlurValue').textContent='2 px';setPhotoBackground(false);});
 $('bgOpacity').addEventListener('input',()=>{$('bgOpacityValue').textContent=$('bgOpacity').value+'%';if(photoBackgroundActive)setPhotoBackground(true)});
