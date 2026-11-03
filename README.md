@@ -1,11 +1,8 @@
-# POSTER MAKER PRO v2.3 — Vista previa de armado
+# POSTER MAKER PRO v2.4
 
-Novedades:
-- Mapa visual del póster completo dividido en hojas.
-- Cada hoja muestra una miniatura del fragmento correspondiente.
-- Etiqueta de fila-columna y número de orden de impresión.
-- Control para ampliar o reducir las miniaturas en pantalla.
-- Lectura del armado de izquierda a derecha y de arriba hacia abajo.
-- Conserva las funciones anteriores: encuadre, mejoras, laboratorio, asistente y exportación PDF/PNG/JPG.
+Actualización: incorpora la sección Restauración PRO con tampón de clonar manual, muestra de origen, pincel ajustable, suavidad, deshacer y restablecer. La imagen restaurada puede aplicarse al diseñador para dividirla e imprimirla.
 
-Actualización: descomprime el ZIP y sustituye los archivos anteriores en la raíz del repositorio GitHub Pages. Después, recarga la PWA; si conserva la versión anterior, ciérrala completamente y vuelve a abrirla para que se actualice la caché.
+## Publicación
+1. Descomprime el ZIP.
+2. Sustituye los archivos de la raíz del repositorio de GitHub Pages.
+3. Recarga la PWA. Si conserva archivos antiguos, cierra y vuelve a abrir la aplicación.

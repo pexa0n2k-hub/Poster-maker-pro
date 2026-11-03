@@ -96,7 +96,7 @@ body.touch-device .preview{min-height:180px}
 @media(max-width:400px){.assistantMetrics{grid-template-columns:1fr 1fr}.assistantMetrics>div:last-child{grid-column:span 2}}
 
 
-.appNav{max-width:900px;margin:8px auto 14px;padding:5px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:#0c1424;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:20;backdrop-filter:blur(18px)}
+.appNav{max-width:1000px;margin:8px auto 14px;padding:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#0c1424;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:20;backdrop-filter:blur(18px)}
 .navTab{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 8px;background:transparent;color:var(--muted);border:1px solid transparent;border-radius:11px;font-size:13px}
 .navTab span{font-size:16px}.navTab.active{background:linear-gradient(110deg,#163d50,#302752);border-color:#5de5ff66;color:#fff;box-shadow:0 0 0 1px #5de5ff22 inset}
 .appPage[hidden]{display:none!important}
@@ -128,6 +128,14 @@ body.touch-device .preview{min-height:180px}
 .assemblyLegend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:#5de5ff;margin-right:5px}
 @media(max-width:400px){.assemblyStats{grid-template-columns:1fr 1fr}.assemblyStats>div:last-child{grid-column:span 2}}
 
+
+.restoreBox{margin-top:12px;padding:14px;border:1px solid rgba(165,139,255,.35);border-radius:16px;background:linear-gradient(145deg,#111b32,#21183b)}
+.restoreIntro{display:grid;gap:4px;margin-bottom:10px}.restoreIntro b{color:#c7b7ff}.restoreIntro small{line-height:1.5}
+.restoreStage{width:100%;max-height:560px;min-height:220px;display:grid;place-items:center;background:#070d18;border:1px solid var(--line);border-radius:12px;overflow:auto;touch-action:none}
+#restoreCanvas{display:block;max-width:100%;height:auto;touch-action:none;cursor:crosshair}
+.restoreBox input[type=range]{width:100%;accent-color:#a58bff;padding:0;background:transparent}
+.restoreStatus{padding:9px 11px;border-radius:9px;background:#091426;color:#cbd8f4;font-size:12px;min-height:38px}
+
 </style>
 </head>
 <body>
@@ -136,6 +144,7 @@ body.touch-device .preview{min-height:180px}
  <button type="button" class="navTab active" data-page="pageDesign"><span>🖼️</span><b>Diseñador</b></button>
  <button type="button" class="navTab" data-page="pageLab"><span>🔬</span><b>Laboratorio</b></button>
  <button type="button" class="navTab" data-page="pageAssistant"><span>🧭</span><b>Asistente</b></button>
+ <button type="button" class="navTab" data-page="pageRestore"><span>🩹</span><b>Restaurar</b></button>
 </nav>
 <main id="pageDesign" class="appPage">
 <section class="card">
@@ -350,6 +359,28 @@ body.touch-device .preview{min-height:180px}
 </section>
  </section>
 </main>
+<main id="pageRestore" class="appPage pageSingle" hidden>
+ <section class="card">
+  <h2>④ Restauración PRO</h2>
+  <p class="hint">Retoque manual para reparar manchas, polvo y rayones pequeños. Trabaja sobre la imagen actual del diseñador.</p>
+  <section class="restoreBox">
+   <div class="restoreIntro"><b>🩹 Tampón de clonar</b><small>1. Toma una muestra de una zona limpia. 2. Pinta sobre la imperfección para copiar la textura de la muestra.</small></div>
+   <div class="restoreStage"><canvas id="restoreCanvas"></canvas></div>
+   <div class="row">
+    <div><label>Tamaño del pincel <b id="restoreBrushVal">28 px</b></label><input id="restoreBrush" type="range" min="8" max="120" value="28"></div>
+    <div><label>Suavidad del borde <b id="restoreSoftVal">65%</b></label><input id="restoreSoft" type="range" min="0" max="100" value="65"></div>
+   </div>
+   <div class="actions">
+    <button type="button" id="restoreSample" class="secondary" disabled>① Tomar muestra</button>
+    <button type="button" id="restoreUndo" class="secondary" disabled>↶ Deshacer</button>
+    <button type="button" id="restoreReset" class="secondary" disabled>Restablecer</button>
+   </div>
+   <p class="restoreStatus" id="restoreStatus">Carga una imagen en Diseñador para comenzar.</p>
+   <div class="actions"><button type="button" id="applyRestore" disabled>Aplicar restauración</button></div>
+   <small>Consejo: toma muestras cercanas que tengan una iluminación y textura parecidas. Esta herramienta es manual; no reconstruye automáticamente objetos grandes ni garantiza una reparación perfecta. El original cargado permanece disponible para volver a empezar.</small>
+  </section>
+ </section>
+</main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 
@@ -359,6 +390,7 @@ function showAppPage(id){
  document.querySelectorAll('.navTab').forEach(tab=>tab.classList.toggle('active',tab.dataset.page===id));
  if(id==='pageLab'&&img){updateLab();drawDetail();}
  if(id==='pageAssistant'&&img)analyzePrintAssistant();
+ if(id==='pageRestore'&&img)initRestoreCanvas();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 document.querySelectorAll('.navTab').forEach(tab=>tab.addEventListener('click',()=>showAppPage(tab.dataset.page)));
@@ -469,7 +501,7 @@ function showImage(image){
  img=image;
  const preview=new Image();preview.src=image.src;preview.alt='Imagen seleccionada';
  $('sourcePreview').innerHTML='';$('sourcePreview').append(preview);
- $('simImg').src=image.src;updateQualityInfo();updateLab();drawCropPreview();$('applyCrop').disabled=false;$('resetCrop').disabled=false;if($('printAssistant'))analyzePrintAssistant();
+ $('simImg').src=image.src;updateQualityInfo();updateLab();drawCropPreview();if($('pageRestore')&&!$('pageRestore').hidden)initRestoreCanvas();$('applyCrop').disabled=false;$('resetCrop').disabled=false;if($('printAssistant'))analyzePrintAssistant();
 }
 function updateQualityInfo(){
  if(!img)return;
@@ -846,6 +878,45 @@ $('pdf').onclick=async()=>{
   doc.save('poster_maker_pro.pdf');$('status').textContent=`PDF listo: ${tiles.length} páginas.`;
  }catch(e){alert('No se pudo generar el PDF: '+e.message)}finally{btn.disabled=false}
 };
+// Restauración manual: tampón de clonar con muestra desplazada y deshacer.
+let restoreReady=false,restoreSamplePoint=null,restorePickMode=false,restoreUndoStack=[],restoreBaseData=null,restorePainting=false,restoreLast=null;
+function initRestoreCanvas(){
+ if(!img)return;const c=$('restoreCanvas');if(!c)return;
+ const max=1800,scale=Math.min(1,max/Math.max(img.naturalWidth,img.naturalHeight));
+ c.width=Math.max(1,Math.round(img.naturalWidth*scale));c.height=Math.max(1,Math.round(img.naturalHeight*scale));
+ const x=c.getContext('2d',{willReadFrequently:true});x.clearRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);
+ restoreBaseData=x.getImageData(0,0,c.width,c.height);restoreUndoStack=[];restoreSamplePoint=null;restorePickMode=false;restoreReady=true;
+ $('restoreSample').disabled=false;$('restoreUndo').disabled=true;$('restoreReset').disabled=false;$('applyRestore').disabled=false;
+ $('restoreStatus').textContent=`Imagen lista: ${img.naturalWidth} × ${img.naturalHeight} px. Pulsa “Tomar muestra” y toca una zona limpia.`;
+}
+function restorePoint(e){const c=$('restoreCanvas'),r=c.getBoundingClientRect();return {x:(e.clientX-r.left)*c.width/r.width,y:(e.clientY-r.top)*c.height/r.height}}
+function saveRestoreUndo(){const c=$('restoreCanvas'),x=c.getContext('2d');restoreUndoStack.push(x.getImageData(0,0,c.width,c.height));if(restoreUndoStack.length>8)restoreUndoStack.shift();$('restoreUndo').disabled=false}
+function cloneDab(point){
+ const c=$('restoreCanvas'),ctx=c.getContext('2d'),radius=Math.max(3,Number($('restoreBrush').value)/2),soft=Number($('restoreSoft').value)/100;
+ if(!restoreSamplePoint)return;
+ const dx=point.x-restoreSamplePoint.x,dy=point.y-restoreSamplePoint.y;
+ const sx=point.x-dx,sy=point.y-dy;
+ if(sx<0||sy<0||sx>=c.width||sy>=c.height)return;
+ const snap=document.createElement('canvas');snap.width=c.width;snap.height=c.height;snap.getContext('2d').drawImage(c,0,0);
+ ctx.save();ctx.beginPath();ctx.arc(point.x,point.y,radius,0,Math.PI*2);ctx.clip();
+ ctx.globalAlpha=1;ctx.filter=soft>0?`blur(${soft*2}px)`:'none';
+ ctx.drawImage(snap,sx-radius,sy-radius,radius*2,radius*2,point.x-radius,point.y-radius,radius*2,radius*2);ctx.restore();
+}
+$('restoreBrush').addEventListener('input',()=> $('restoreBrushVal').textContent=$('restoreBrush').value+' px');
+$('restoreSoft').addEventListener('input',()=> $('restoreSoftVal').textContent=$('restoreSoft').value+'%');
+$('restoreSample').addEventListener('click',()=>{if(!restoreReady)return;restorePickMode=true;restorePainting=false;$('restoreStatus').textContent='Toca en la imagen una zona limpia para tomar la muestra.';});
+$('restoreCanvas').addEventListener('pointerdown',e=>{
+ if(!restoreReady)return;const pt=restorePoint(e);
+ if(restorePickMode){restoreSamplePoint=pt;restorePickMode=false;$('restoreStatus').textContent='Muestra tomada. Ahora pinta sobre la mancha o rayón. La muestra se copia manteniendo la misma distancia.';return;}
+ if(!restoreSamplePoint){$('restoreStatus').textContent='Primero pulsa “Tomar muestra” y selecciona una zona limpia.';return;}
+ restorePainting=true;restoreLast=pt;saveRestoreUndo();$('restoreCanvas').setPointerCapture(e.pointerId);cloneDab(pt);
+});
+$('restoreCanvas').addEventListener('pointermove',e=>{if(!restorePainting)return;const p=restorePoint(e);const dx=p.x-restoreLast.x,dy=p.y-restoreLast.y,dist=Math.hypot(dx,dy),step=Math.max(3,Number($('restoreBrush').value)*.22);for(let t=step;t<=dist;t+=step)cloneDab({x:restoreLast.x+dx*t/dist,y:restoreLast.y+dy*t/dist});cloneDab(p);restoreLast=p;});
+$('restoreCanvas').addEventListener('pointerup',()=>restorePainting=false);$('restoreCanvas').addEventListener('pointercancel',()=>restorePainting=false);
+$('restoreUndo').addEventListener('click',()=>{if(!restoreUndoStack.length)return;const c=$('restoreCanvas');c.getContext('2d').putImageData(restoreUndoStack.pop(),0,0);$('restoreUndo').disabled=!restoreUndoStack.length;$('restoreStatus').textContent='Último trazo deshecho.';});
+$('restoreReset').addEventListener('click',()=>{if(!restoreReady)return;$('restoreCanvas').getContext('2d').putImageData(restoreBaseData,0,0);restoreUndoStack=[];restoreSamplePoint=null;$('restoreUndo').disabled=true;$('restoreStatus').textContent='Restauración reiniciada. Toma una nueva muestra para comenzar.';});
+$('applyRestore').addEventListener('click',async()=>{if(!restoreReady)return;const btn=$('applyRestore');btn.disabled=true;try{const {image,url}=await canvasImage($('restoreCanvas'));if(enhancedUrl)URL.revokeObjectURL(enhancedUrl);enhancedUrl=url;showImage(image);if($('calculate').dataset.ready==='1')calculate();$('restoreStatus').textContent='Restauración aplicada. La imagen retocada ya está lista para dividir e imprimir.';}catch(err){alert(err.message)}finally{btn.disabled=false}});
+
 window.addEventListener('resize',drawSimulator);
 window.addEventListener('load',()=>{drawSimulator();setTimeout(drawSimulator,250)});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
