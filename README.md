@@ -1,11 +1,13 @@
-# POSTER MAKER PRO v1.9 — Asistente inteligente de impresión
+# POSTER MAKER PRO v2.0 — Asistente inteligente de impresión
 
 Novedades:
-- Simulador de resolución: compara matemáticamente la salida original, IA ×2 e IA ×4 y estima los DPI para el tamaño configurado.
-- Tamaño máximo teórico de impresión a 100 y 150 DPI, conservando la proporción original.
-- Zoom ×2/×4 del centro de la imagen para inspeccionar detalles del original y la versión actual.
-- Conserva el laboratorio, comparación antes/después, diagnóstico, mejora normal, superresolución IA, división en hojas y exportación.
+- Selección de objetivo de impresión: 72, 100, 150 o 200 DPI.
+- Recomendación de tamaño máximo conservando la proporción de la imagen.
+- Estimación de hojas con el papel, margen y solapamiento configurados.
+- Acción para aplicar el tamaño recomendado y calcular automáticamente el póster.
+- Análisis del tamaño actual y advertencias cuando la proporción no coincide.
+- Se conservan laboratorio, comparación, zoom, mejora normal, IA ×2/×4 y exportación.
 
-Importante: la proyección ×2/×4 estima la dimensión en píxeles que tendría el archivo al aplicar la IA; no garantiza que el detalle generado equivalga a una captura original con esa resolución. Los tamaños y DPI son orientativos.
+Las cifras son estimaciones. El resultado impreso depende también del material, la impresora, la distancia de observación y la calidad de origen.
 
-Publicación: sube todos los archivos de esta carpeta a la raíz del repositorio GitHub Pages, sustituyendo la versión anterior.
+Publicación: sube todos los archivos de esta carpeta a la raíz del repositorio GitHub Pages, sustituyendo los anteriores.

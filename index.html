@@ -86,6 +86,15 @@ body.touch-device .preview{min-height:180px}
 .detailGrid small{display:block;font-size:9px;margin-bottom:5px}
 .detailGrid canvas{display:block;width:100%;height:auto;aspect-ratio:320/220;background:#050a13;border-radius:5px}
 
+
+.printAssistant{margin:15px 0;padding:14px;border:1px solid rgba(98,245,189,.27);border-radius:16px;background:linear-gradient(145deg,#0b1d27,#121b32)}
+.printAssistant h3{margin:0 0 6px;color:#78f3c4}
+.assistantMetrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:12px 0}
+.assistantMetrics>div{min-width:0;padding:9px;border-radius:10px;background:#081521;border:1px solid var(--line)}
+.assistantMetrics small{display:block;font-size:10px}.assistantMetrics b{display:block;color:#78f3c4;font-size:14px;margin-top:4px;overflow-wrap:anywhere}
+.assistantAdvice{font-size:12px;color:#d9e9f1;background:#081521;border-radius:10px;padding:10px;margin:9px 0}
+@media(max-width:400px){.assistantMetrics{grid-template-columns:1fr 1fr}.assistantMetrics>div:last-child{grid-column:span 2}}
+
 </style>
 </head>
 <body>
@@ -200,6 +209,30 @@ body.touch-device .preview{min-height:180px}
 <div><label>Margen no imprimible (cm)</label><input id="margin" type="number" value="0.5" min="0" max="5" step=".1"></div>
 <div><label>Solapamiento (cm)</label><input id="overlap" type="number" value="1" min="0" max="5" step=".1"></div>
 </div>
+
+<section class="printAssistant" id="printAssistant">
+ <h3>🧭 Asistente inteligente de impresión</h3>
+ <p class="hint">Elige la densidad de impresión que buscas y calcula un tamaño recomendado para tu imagen.</p>
+ <label>Objetivo de calidad</label>
+ <select id="targetDpi">
+  <option value="72">72 DPI · Gran formato a distancia</option>
+  <option value="100" selected>100 DPI · Lona / póster grande</option>
+  <option value="150">150 DPI · Más detalle</option>
+  <option value="200">200 DPI · Alta definición</option>
+ </select>
+ <div class="assistantMetrics">
+  <div><small>Tamaño recomendado</small><b id="recommendedSize">—</b></div>
+  <div><small>DPI estimados</small><b id="recommendedDpi">—</b></div>
+  <div><small>Hojas aproximadas</small><b id="recommendedSheets">—</b></div>
+ </div>
+ <p class="assistantAdvice" id="assistantAdvice">Carga una imagen para recibir una recomendación de impresión.</p>
+ <div class="actions">
+  <button type="button" id="applyRecommended" disabled>Usar tamaño recomendado</button>
+  <button type="button" class="secondary" id="analyzeCurrent" disabled>Analizar tamaño actual</button>
+ </div>
+ <small>La recomendación conserva la proporción original y estima hojas con el papel, margen y solapamiento seleccionados. La calidad final también depende del material, impresora y distancia de visualización.</small>
+</section>
+
 <h3>División</h3>
 <div class="row">
 <div><label>Modo</label><select id="mode"><option value="auto">Automático por tamaño</option><option value="manual">Manual: filas y columnas</option></select></div>
@@ -265,7 +298,7 @@ function showImage(image){
  img=image;
  const preview=new Image();preview.src=image.src;preview.alt='Imagen seleccionada';
  $('sourcePreview').innerHTML='';$('sourcePreview').append(preview);
- $('simImg').src=image.src;updateQualityInfo();updateLab();
+ $('simImg').src=image.src;updateQualityInfo();updateLab();if($('printAssistant'))analyzePrintAssistant();
 }
 function updateQualityInfo(){
  if(!img)return;
@@ -445,17 +478,65 @@ $('applyNormal').onclick=applyNormal;
 $('restoreOriginal').onclick=()=>{if(!originalImg)return;if(enhancedUrl)URL.revokeObjectURL(enhancedUrl);enhancedUrl=null;showImage(originalImg);if($('calculate').dataset.ready==='1')calculate();$('status').textContent='Imagen original restaurada.'};
 $('ai2x').onclick=()=>runAI(2);$('ai4x').onclick=()=>runAI(4);
 
+
+let recommendedPrint={width:0,height:0,dpi:0,sheets:0};
+function estimateSheets(W,H){
+ try{
+  const [pw,ph]=paperDims(),m=Number($('margin').value)||0,o=Number($('overlap').value)||0;
+  const usableW=pw-2*m,usableH=ph-2*m;
+  const stepX=usableW-o,stepY=usableH-o;
+  if(stepX<=0||stepY<=0)return null;
+  const cols=Math.max(1,Math.ceil((W-o)/stepX));
+  const rows=Math.max(1,Math.ceil((H-o)/stepY));
+  return {cols,rows,total:cols*rows};
+ }catch(e){return null}
+}
+function analyzePrintAssistant(){
+ if(!img)return;
+ const target=Number($('targetDpi').value)||100;
+ const ratio=img.naturalWidth/img.naturalHeight;
+ const recW=img.naturalWidth/target*2.54;
+ const recH=img.naturalHeight/target*2.54;
+ const sheets=estimateSheets(recW,recH);
+ recommendedPrint={width:recW,height:recH,dpi:target,sheets:sheets?sheets.total:0};
+ $('recommendedSize').textContent=`${recW.toFixed(1)} × ${recH.toFixed(1)} cm`;
+ $('recommendedDpi').textContent=`${target} DPI`;
+ $('recommendedSheets').textContent=sheets?`${sheets.total} (${sheets.cols} × ${sheets.rows})`:'—';
+ const cw=Number($('width').value)||100,ch=Number($('height').value)||150;
+ const currentDpi=Math.floor(Math.min(img.naturalWidth/(cw/2.54),img.naturalHeight/(ch/2.54)));
+ let message=`Para conservar el detalle a ${target} DPI, el tamaño recomendado es ${recW.toFixed(1)} × ${recH.toFixed(1)} cm. `;
+ if(sheets)message+=`Con el papel y los márgenes actuales serían aproximadamente ${sheets.total} hojas. `;
+ if(Math.abs(cw/ch-ratio)/ratio>.03)message+='Atención: el tamaño que tienes configurado no conserva la proporción de la imagen y podría deformarla o requerir recorte.';
+ else message+=`Tu tamaño actual (${cw} × ${ch} cm) entrega aproximadamente ${currentDpi} DPI.`;
+ $('assistantAdvice').textContent=message;
+ $('applyRecommended').disabled=false;$('analyzeCurrent').disabled=false;
+}
+$('targetDpi').addEventListener('change',analyzePrintAssistant);
+$('applyRecommended').onclick=()=>{
+ if(!recommendedPrint.width)return;
+ $('width').value=recommendedPrint.width.toFixed(1);
+ $('height').value=recommendedPrint.height.toFixed(1);
+ drawSimulator();updateQualityInfo();calculate();analyzePrintAssistant();
+};
+$('analyzeCurrent').onclick=()=>{
+ if(!img)return;
+ const cw=Number($('width').value)||100,ch=Number($('height').value)||150;
+ const dpi=Math.floor(Math.min(img.naturalWidth/(cw/2.54),img.naturalHeight/(ch/2.54)));
+ const sheets=estimateSheets(cw,ch);
+ $('assistantAdvice').textContent=`Tamaño actual: ${cw} × ${ch} cm · ${dpi} DPI estimados · ${sheets?sheets.total+' hojas ('+sheets.cols+' × '+sheets.rows+')':'no se pudo calcular el papel'}. ${dpi<72?'Resolución baja: considera reducir el tamaño o aplicar superresolución IA.':dpi<100?'Puede servir para gran formato visto a cierta distancia.':dpi<150?'Densidad adecuada para muchas lonas y pósteres grandes.':'Buena densidad para una impresión con más detalle.'}`;
+};
+
 function refreshIfReady(){if(img && $('calculate').dataset.ready==='1')calculate()}
-$('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady()};
-$('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady()};
+$('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
+$('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
 $('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
 $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
 ['width','height'].forEach(id=>{
- $(id).addEventListener('input',()=>{drawSimulator();updateQualityInfo()});
- $(id).addEventListener('change',()=>{drawSimulator();updateQualityInfo()});
+ $(id).addEventListener('input',()=>{drawSimulator();updateQualityInfo();if($('printAssistant'))analyzePrintAssistant()});
+ $(id).addEventListener('change',()=>{drawSimulator();updateQualityInfo();if($('printAssistant'))analyzePrintAssistant()});
 });
 ['width','height','orientation','margin','overlap','pw','ph','cols','rows'].forEach(id=>{
- $(id).addEventListener('change',refreshIfReady);
+ $(id).addEventListener('change',()=>{refreshIfReady();if($('printAssistant'))analyzePrintAssistant()});
 });
 $('calculate').onclick=calculate;
 $('reset').onclick=()=>location.reload();
