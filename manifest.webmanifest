@@ -1,0 +1,10 @@
+{
+  "name":"Poster Maker Pro",
+  "short_name":"Poster Maker",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#090d18",
+  "theme_color":"#090d18",
+  "description":"Convierte imágenes en pósteres divididos en hojas imprimibles.",
+  "icons":[]
+}

@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090d18">
+<title>POSTER MAKER PRO</title>
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#090d18;--panel:rgba(255,255,255,.075);--line:rgba(255,255,255,.13);--txt:#f4f7ff;--muted:#aab4ca;--cyan:#5de5ff;--violet:#a58bff;--green:#62f5bd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,#17284b 0,transparent 34%),radial-gradient(circle at 90% 20%,#251747 0,transparent 30%),var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{padding:22px 18px 12px;max-width:1200px;margin:auto}h1{margin:0;font-size:clamp(24px,5vw,36px);letter-spacing:1.5px}h1 span{color:var(--cyan)}.sub{color:var(--muted);margin-top:5px}
+main{max-width:1200px;margin:auto;padding:12px 16px 50px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr) minmax(300px,.9fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:17px;backdrop-filter:blur(18px);box-shadow:0 15px 45px #0004}
+h2{font-size:17px;margin:0 0 13px}h3{font-size:14px;margin:17px 0 8px;color:var(--cyan)}
+label{display:block;color:var(--muted);font-size:12px;margin:9px 0 5px}input,select,button{font:inherit}input:not([type=file]),select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#111a2b;color:var(--txt);outline:none}
+input[type=file]{width:100%;padding:12px;border:1px dashed #60708e;border-radius:12px;background:#10192a;color:var(--muted)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+button{border:0;border-radius:12px;padding:12px 15px;background:linear-gradient(110deg,#36cfe9,#8d7cff);color:#07111d;font-weight:750;cursor:pointer}
+button.secondary{background:#1b2940;color:var(--txt);border:1px solid var(--line)}button:disabled{opacity:.4;cursor:not-allowed}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1;min-width:130px}
+small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.stat{padding:10px;border-radius:12px;background:#101a2b;border:1px solid var(--line)}.stat b{display:block;font-size:20px;color:var(--cyan)}
+.preview{min-height:260px;display:grid;place-items:center;background:repeating-conic-gradient(#ffffff08 0% 25%,transparent 0% 50%) 50%/18px 18px;border-radius:14px;overflow:hidden;padding:12px}
+.preview img{max-width:100%;max-height:380px;object-fit:contain;box-shadow:0 8px 30px #0008}.preview canvas{max-width:100%;height:auto}
+#tileGrid{display:grid;gap:3px;max-width:100%;margin:12px auto;justify-content:center}.tile{background:#fff;color:#111;aspect-ratio:1/1.414;display:grid;place-items:center;font-size:11px;border:1px solid #aab;min-width:0}
+#tileGrid.landscape .tile{aspect-ratio:1.414/1}
+.simWrap{background:linear-gradient(#1b2a40 0 68%,#29374a 68%);border-radius:14px;padding:16px;overflow:hidden}
+.simScene{height:280px;display:flex;align-items:end;justify-content:center;gap:18px;position:relative}
+.person{height:170px;width:43px;position:relative;flex:none}
+.person:before{content:"";position:absolute;width:30px;height:30px;border-radius:50%;background:#d9b79a;top:0;left:7px}
+.person:after{content:"";position:absolute;top:34px;left:3px;width:37px;height:82px;border-radius:12px 12px 7px 7px;background:#d7e2f4;box-shadow:-9px 75px 0 -4px #26334a,9px 75px 0 -4px #26334a}
+.posterMock{background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 5px 20px #0008;max-width:75%;max-height:250px;align-self:center;margin-top:12px}
+.posterMock img{width:100%;height:100%;object-fit:fill}.simCaption{font-size:12px;color:#dbe8ff;text-align:center;margin-top:8px}
+#roomPoster{border:5px solid #fff}
+.hidden{display:none!important}
+@media(max-width:820px){main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:400px){.row{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr 1fr}.card{padding:13px}}
+</style>
+</head>
+<body>
+<header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div></header>
+<main>
+<section class="card">
+<h2>① Imagen y configuración</h2>
+<label>Selecciona tu imagen</label><input id="file" type="file" accept="image/png,image/jpeg,image/webp">
+<div class="preview" id="sourcePreview"><span class="hint">Tu imagen aparecerá aquí</span></div>
+<div class="row">
+<div><label>Ancho final (cm)</label><input id="width" type="number" min="1" max="2000" value="100"></div>
+<div><label>Alto final (cm)</label><input id="height" type="number" min="1" max="2000" value="150"></div>
+</div>
+<div class="row">
+<div><label>Papel</label><select id="paper"><option value="a4">A4 (21 × 29.7 cm)</option><option value="a3">A3 (29.7 × 42 cm)</option><option value="letter">Carta (21.59 × 27.94 cm)</option><option value="legal">Oficio / Legal (21.59 × 35.56 cm)</option><option value="tabloid">Tabloide (27.94 × 43.18 cm)</option><option value="custom">Personalizado</option></select></div>
+<div><label>Orientación del papel</label><select id="orientation"><option value="auto">Automática</option><option value="portrait">Vertical</option><option value="landscape">Horizontal</option></select></div>
+</div>
+<div class="row" id="customPaper" hidden>
+<div><label>Ancho papel (cm)</label><input id="pw" type="number" value="21" min="5"></div><div><label>Alto papel (cm)</label><input id="ph" type="number" value="29.7" min="5"></div>
+</div>
+<div class="row">
+<div><label>Margen no imprimible (cm)</label><input id="margin" type="number" value="0.5" min="0" max="5" step=".1"></div>
+<div><label>Solapamiento (cm)</label><input id="overlap" type="number" value="1" min="0" max="5" step=".1"></div>
+</div>
+<h3>División</h3>
+<div class="row">
+<div><label>Modo</label><select id="mode"><option value="auto">Automático por tamaño</option><option value="manual">Manual: filas y columnas</option></select></div>
+<div id="manualCols" hidden><label>Columnas</label><input id="cols" type="number" min="1" max="30" value="4"></div>
+</div>
+<div class="row" id="manualRows" hidden><div><label>Filas</label><input id="rows" type="number" min="1" max="30" value="5"></div><div><label>&nbsp;</label><small>La división manual ajusta la imagen al número de hojas elegido.</small></div></div>
+<div class="actions"><button id="calculate" disabled>Calcular póster</button><button class="secondary" id="reset">Restablecer</button></div>
+<div class="stats"><div class="stat"><small>Hojas</small><b id="count">—</b></div><div class="stat"><small>Columnas × filas</small><b id="gridSize">—</b></div><div class="stat"><small>Escala</small><b id="dpi">—</b></div></div>
+<p class="hint" id="status">Sube una imagen para comenzar.</p>
+</section>
+<section class="card">
+<h2>② Vista previa y simulador</h2>
+<div class="row"><button class="secondary" id="tabTiles">Distribución de hojas</button><button class="secondary" id="tabSim">Comparar tamaño</button></div>
+<div id="tilesPanel">
+<div class="preview" id="posterPreview"><span class="hint">Primero calcula tu póster</span></div>
+<div id="tileGrid"></div>
+<p class="hint" id="tileInfo">Cada rectángulo representa una hoja del mosaico.</p>
+</div>
+<div id="simPanel" class="hidden">
+<div class="simWrap">
+<div class="simScene"><div class="person" title="Persona de referencia: 1.70 m"></div><div id="roomPoster" class="posterMock"><img id="simImg" alt=""></div></div>
+<div class="simCaption">Persona de referencia: 1.70 m · Escala proporcional del póster</div>
+</div>
+<p class="hint" id="simInfo">La comparación usa las medidas configuradas y mantiene la proporción entre la persona y el póster.</p>
+</div>
+<h3>③ Exportar</h3>
+<div class="actions"><button id="pdf" disabled>Descargar PDF</button><button class="secondary" id="png" disabled>Descargar hojas PNG</button><button class="secondary" id="jpg" disabled>Descargar hojas JPG</button></div>
+<p class="hint">El PDF contiene una página por hoja, con numeración y marcas de corte. Para imprimir, selecciona “Tamaño real” o “100 %” y desactiva “Ajustar a página”.</p>
+</section>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let img=null, imgUrl=null, tiles=[], cfg=null;
+const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
+$('file').addEventListener('change',e=>{
+ const f=e.target.files[0]; if(!f)return;
+ if(!/^image\\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
+ if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); img=new Image();
+ img.onload=()=>{$('sourcePreview').innerHTML='';$('sourcePreview').append(img.cloneNode());$('calculate').disabled=false;$('simImg').src=imgUrl;$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`};
+ img.src=imgUrl;
+});
+$('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom'};
+$('mode').onchange=()=>{let m=$('mode').value==='manual';$('manualCols').hidden=!m;$('manualRows').hidden=!m};
+$('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
+$('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
+$('calculate').onclick=calculate;
+$('reset').onclick=()=>location.reload();
+function paperDims(){
+ let p=$('paper').value, d=p==='custom'?[+ $('pw').value,+ $('ph').value]:papers[p];
+ if(!d||d.some(x=>!Number.isFinite(x)||x<=0))throw Error('Revisa las medidas del papel.');
+ if($('orientation').value==='landscape'||($('orientation').value==='auto'&&d[0]>d[1]))d=[d[1],d[0]];
+ return d;
+}
+function calculate(){
+ try{
+ if(!img)throw Error('Primero selecciona una imagen.');
+ let W=+$('width').value,H=+$('height').value, [pw,ph]=paperDims(),m=+$('margin').value,o=+$('overlap').value;
+ if(W<=0||H<=0||m<0||o<0||2*m>=Math.min(pw,ph))throw Error('Revisa las medidas, márgenes y solapamiento.');
+ let usableW=pw-2*m,usableH=ph-2*m,stepX=usableW-o,stepY=usableH-o;
+ let cols,rows;
+ if($('mode').value==='manual'){
+   cols=+$('cols').value;rows=+$('rows').value;
+   if(cols<1||rows<1||cols>30||rows>30)throw Error('Filas y columnas deben estar entre 1 y 30.');
+   // Distribuye el área completa del póster entre las hojas manuales, conservando el solapamiento.
+   stepX=cols===1?0:Math.max(0,(W-usableW)/(cols-1));
+   stepY=rows===1?0:Math.max(0,(H-usableH)/(rows-1));
+  } else {cols=Math.max(1,Math.ceil((W-o)/stepX));rows=Math.max(1,Math.ceil((H-o)/stepY))}
+ cfg={W,H,pw,ph,m,o,usableW,usableH,stepX,stepY,cols,rows};
+ tiles=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)tiles.push({r,c});
+ $('count').textContent=tiles.length;$('gridSize').textContent=`${cols} × ${rows}`;
+ const dpi=Math.min(img.naturalWidth/(W/2.54),img.naturalHeight/(H/2.54));$('dpi').textContent=Math.round(dpi)+' dpi';
+ $('status').textContent=`Listo: ${tiles.length} hojas. ${W} × ${H} cm.`;
+ $('pdf').disabled=$('png').disabled=$('jpg').disabled=false;
+ drawGrid();drawSimulator();
+ }catch(e){alert(e.message)}
+}
+function drawGrid(){
+ $('posterPreview').innerHTML='';let cv=document.createElement('canvas');cv.width=600;cv.height=Math.round(600*cfg.H/cfg.W);let ctx=cv.getContext('2d');ctx.drawImage(img,0,0,cv.width,cv.height);$('posterPreview').append(cv);
+ let g=$('tileGrid');g.innerHTML='';g.style.gridTemplateColumns=`repeat(${cfg.cols},minmax(0,1fr))`;g.className=cfg.pw>cfg.ph?'landscape':'';
+ tiles.forEach((t,i)=>{let d=document.createElement('div');d.className='tile';d.textContent=String(i+1).padStart(2,'0');g.append(d)});
+ $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm.`;
+}
+function drawSimulator(){
+ if(!cfg)return;
+ // Comparación proporcional: persona de 170 cm; el póster se representa a escala limitada para caber en la escena.
+ const maxH=250, personH=170, posterH=Math.max(22,Math.min(maxH,cfg.H/170*personH));
+ const posterW=posterH*cfg.W/cfg.H;
+ $('roomPoster').style.height=posterH+'px';$('roomPoster').style.width=Math.min(220,posterW)+'px';$('simInfo').textContent=`Póster: ${cfg.W} × ${cfg.H} cm. En la comparación, la altura de la persona representa 170 cm.`;
+}
+function renderTile(t,scale=1){
+ const {W,H,m,o,usableW,usableH,stepX,stepY,cols,rows}=cfg;
+ const pageW=cfg.pw,pageH=cfg.ph,pxPerCm=300/2.54;
+ const canvas=document.createElement('canvas');canvas.width=Math.round(pageW*pxPerCm*scale);canvas.height=Math.round(pageH*pxPerCm*scale);
+ const x=canvas.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,canvas.width,canvas.height);
+ const s=canvas.width/pageW;
+ // Each page covers its usable printable region, with overlap into adjacent tiles.
+ let left=t.c*stepX,top=t.r*stepY;
+ let right=Math.min(W,left+usableW),bottom=Math.min(H,top+usableH);
+ let srcX=left/W*img.naturalWidth,srcY=top/H*img.naturalHeight;
+ let srcW=(right-left)/W*img.naturalWidth,srcH=(bottom-top)/H*img.naturalHeight;
+ let destX=m*s,destY=m*s,destW=(right-left)*s,destH=(bottom-top)*s;
+ // Scale the whole artwork to the requested final dimensions.
+ x.drawImage(img,srcX,srcY,srcW,srcH,destX,destY,destW,destH);
+ x.strokeStyle='#222';x.lineWidth=Math.max(1,s*.025);x.setLineDash([s*.08,s*.06]);
+ x.strokeRect(destX,destY,destW,destH);x.setLineDash([]);
+ x.fillStyle='#111';x.font=`bold ${Math.max(10,s*.38)}px Arial`;x.fillText(`${t.r+1}-${t.c+1}  (${t.r*cols+t.c+1}/${rows*cols})`,m*s,Math.max(12,m*s*.55));
+ // registration marks near printable corners
+ const mark=s*.18;x.lineWidth=Math.max(1,s*.012);[[m*s,m*s],[canvas.width-m*s,m*s],[m*s,canvas.height-m*s],[canvas.width-m*s,canvas.height-m*s]].forEach(([xx,yy])=>{x.beginPath();x.moveTo(xx-mark,yy);x.lineTo(xx+mark,yy);x.moveTo(xx,yy-mark);x.lineTo(xx,yy+mark);x.stroke()});
+ return canvas;
+}
+async function downloadTiles(type){
+ if(!cfg)return;
+ const btn=type==='image/png'?$('png'):$('jpg');btn.disabled=true;let n=0;
+ for(const t of tiles){
+  const c=renderTile(t,.55);const blob=await new Promise(res=>c.toBlob(res,type,.94));
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`poster_fila${t.r+1}_col${t.c+1}.${type==='image/png'?'png':'jpg'}`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1500);n++;
+  $('status').textContent=`Preparando descarga: ${n}/${tiles.length}`;
+  await new Promise(r=>setTimeout(r,120));
+ }
+ btn.disabled=false;$('status').textContent=`Listo: ${n} imágenes descargadas.`;
+}
+$('png').onclick=()=>downloadTiles('image/png');$('jpg').onclick=()=>downloadTiles('image/jpeg');
+$('pdf').onclick=async()=>{
+ if(!window.jspdf){alert('No se pudo cargar el generador PDF. Comprueba tu conexión e inténtalo de nuevo.');return}
+ const btn=$('pdf');btn.disabled=true;
+ try{
+  const {jsPDF}=window.jspdf;let doc=new jsPDF({orientation:cfg.pw>cfg.ph?'landscape':'portrait',unit:'mm',format:[cfg.pw*10,cfg.ph*10],compress:true});
+  for(let i=0;i<tiles.length;i++){
+   if(i)doc.addPage([cfg.pw*10,cfg.ph*10],cfg.pw>cfg.ph?'landscape':'portrait');
+   let c=renderTile(tiles[i],.75),data=c.toDataURL('image/jpeg',.92);
+   doc.addImage(data,'JPEG',0,0,cfg.pw*10,cfg.ph*10,undefined,'FAST');
+   $('status').textContent=`Generando PDF: ${i+1}/${tiles.length}`;
+   await new Promise(r=>setTimeout(r,10));
+  }
+  doc.save('poster_maker_pro.pdf');$('status').textContent=`PDF listo: ${tiles.length} páginas.`;
+ }catch(e){alert('No se pudo generar el PDF: '+e.message)}finally{btn.disabled=false}
+};
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script>
+</body></html>
