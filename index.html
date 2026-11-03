@@ -73,6 +73,19 @@ body.touch-device .preview{min-height:180px}
 .labNote{display:block;line-height:1.4}
 @media(max-width:400px){.labStats{grid-template-columns:1fr 1fr}.labStats .labStat:last-child{grid-column:span 2}}
 
+
+.forecastBox,.detailBox{margin-top:14px;padding:12px;border-radius:13px;background:#091426;border:1px solid rgba(93,229,255,.2)}
+.forecastBox h3,.detailBox h3{margin:0 0 5px}
+.forecastChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}
+.forecastChoice.active,.detailZoom.active{border-color:#5de5ff;background:linear-gradient(110deg,#16465b,#31285e);color:#fff;box-shadow:0 0 0 1px #5de5ff55 inset}
+.forecastGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.forecastStat{padding:9px;border-radius:10px;background:#111e32;border:1px solid var(--line);min-width:0}
+.forecastStat small{display:block;font-size:10px}.forecastStat b{display:block;color:var(--cyan);font-size:15px;margin-top:3px;overflow-wrap:anywhere}
+.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.detailGrid>div{min-width:0;background:#101a2b;border:1px solid var(--line);padding:6px;border-radius:9px}
+.detailGrid small{display:block;font-size:9px;margin-bottom:5px}
+.detailGrid canvas{display:block;width:100%;height:auto;aspect-ratio:320/220;background:#050a13;border-radius:5px}
+
 </style>
 </head>
 <body>
@@ -135,6 +148,41 @@ body.touch-device .preview{min-height:180px}
  </div>
  <p class="labAdvice" id="labAdvice">Carga una imagen para analizar su calidad de impresión.</p>
  <small class="labNote">Estimación basada en píxeles y tamaño final. La nitidez percibida también depende de la distancia de visualización, el material y la impresora.</small>
+
+ <div class="forecastBox">
+  <h3>🚀 Simulador de resolución IA</h3>
+  <p class="hint">Calcula cómo cambiarían los píxeles y los DPI estimados si aplicas superresolución.</p>
+  <div class="forecastChoices">
+   <button type="button" class="secondary forecastChoice active" data-factor="1">Original</button>
+   <button type="button" class="secondary forecastChoice" data-factor="2">IA ×2</button>
+   <button type="button" class="secondary forecastChoice" data-factor="4">IA ×4</button>
+  </div>
+  <div class="forecastGrid">
+   <div class="forecastStat"><small>Resolución estimada</small><b id="forecastPixels">—</b></div>
+   <div class="forecastStat"><small>DPI estimados</small><b id="forecastDpi">—</b></div>
+  </div>
+  <p class="labAdvice" id="forecastAdvice">Selecciona un nivel para ver la estimación.</p>
+  <small class="labNote">Tamaño máximo teórico manteniendo la proporción original; usa 100 DPI como referencia de gran formato y 150 DPI para más detalle.</small>
+  <div class="forecastGrid">
+   <div class="forecastStat"><small>Tamaño máximo aprox. a 100 DPI</small><b id="max100">—</b></div>
+   <div class="forecastStat"><small>Tamaño máximo aprox. a 150 DPI</small><b id="max150">—</b></div>
+  </div>
+  <small class="labNote">Proyección matemática del tamaño de salida. No significa que se recuperen todos los detalles originales; la IA puede generar textura y el resultado depende de la imagen.</small>
+ </div>
+
+ <div class="detailBox">
+  <h3>🔍 Zoom de detalles</h3>
+  <p class="hint">Inspecciona una zona ampliada de la imagen original y del resultado actual.</p>
+  <div class="row">
+   <button type="button" class="secondary detailZoom active" data-zoom="2">Zoom ×2</button>
+   <button type="button" class="secondary detailZoom" data-zoom="4">Zoom ×4</button>
+  </div>
+  <div class="detailGrid">
+   <div><small>ORIGINAL</small><canvas id="detailOriginal" width="320" height="220"></canvas></div>
+   <div><small>ACTUAL / MEJORADA</small><canvas id="detailCurrent" width="320" height="220"></canvas></div>
+  </div>
+  <small class="labNote">Vista del centro de la imagen para detectar bordes, texturas y posibles artefactos.</small>
+ </div>
 </section>
 
 <div class="row">
@@ -252,11 +300,56 @@ function updateLab(){
  $('labGrade').textContent=grade;
  $('labAdvice').textContent=`${advice} Tamaño configurado: ${w} × ${h} cm.`;
  $('labDpi').style.color=dpi>=100?'#62f5bd':dpi>=72?'#ffd479':'#ff8b9b';
+ updateForecast();drawDetail();
 }
 $('compareSlider').addEventListener('input',()=>{
  const v=Number($('compareSlider').value);
  $('compareAfterClip').style.width=v+'%';$('compareDivider').style.left=v+'%';$('compareValue').textContent=v+'%';
 });
+
+let forecastFactor=1,detailZoom=2;
+function updateForecast(){
+ if(!img)return;
+ const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const factor=forecastFactor;
+ const pxW=img.naturalWidth*factor,pxH=img.naturalHeight*factor;
+ const dpi=Math.floor(Math.min(pxW/(w/2.54),pxH/(h/2.54)));
+ $('forecastPixels').textContent=`${pxW.toLocaleString()} × ${pxH.toLocaleString()} px`;
+ $('forecastDpi').textContent=`${dpi} DPI`;
+ let msg;
+ if(factor===1)msg='Esta es la resolución que tienes actualmente, sin superresolución.';
+ else msg=`Con IA ×${factor}, la salida tendría ${factor} veces más píxeles por lado y el cálculo daría aproximadamente ${dpi} DPI. Es una estimación de densidad; no garantiza el mismo nivel de detalle que una fotografía capturada originalmente a esa resolución.`;
+ if(dpi>=150)msg+=' El cálculo de densidad es alto para impresión detallada.';
+ else if(dpi>=100)msg+=' Es una densidad orientativa buena para gran formato.';
+ else if(dpi>=72)msg+=' Puede ser adecuada para una lona vista a cierta distancia.';
+ else msg+=' Incluso con este aumento, la densidad seguiría siendo baja para el tamaño configurado.';
+ $('forecastAdvice').textContent=msg;
+ $('max100').textContent=`${(pxW/100*2.54/100).toFixed(2)} × ${(pxH/100*2.54/100).toFixed(2)} m`;
+ $('max150').textContent=`${(pxW/150*2.54/100).toFixed(2)} × ${(pxH/150*2.54/100).toFixed(2)} m`;
+}
+document.querySelectorAll('.forecastChoice').forEach(btn=>btn.addEventListener('click',()=>{
+ forecastFactor=Number(btn.dataset.factor);
+ document.querySelectorAll('.forecastChoice').forEach(b=>b.classList.toggle('active',b===btn));
+ updateForecast();
+}));
+function drawDetail(){
+ if(!originalImg||!img)return;
+ const draw=(image,id)=>{
+  const canvas=$(id),ctx=canvas.getContext('2d');
+  const sw=image.naturalWidth,sh=image.naturalHeight;
+  const cropW=sw/detailZoom,cropH=sh/detailZoom;
+  const sx=(sw-cropW)/2,sy=(sh-cropH)/2;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(image,sx,sy,cropW,cropH,0,0,canvas.width,canvas.height);
+ };
+ draw(originalImg,'detailOriginal');draw(img,'detailCurrent');
+}
+document.querySelectorAll('.detailZoom').forEach(btn=>btn.addEventListener('click',()=>{
+ detailZoom=Number(btn.dataset.zoom);
+ document.querySelectorAll('.detailZoom').forEach(b=>b.classList.toggle('active',b===btn));
+ drawDetail();
+}));
 
 function canvasImage(canvas){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>{

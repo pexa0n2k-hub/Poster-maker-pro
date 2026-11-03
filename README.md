@@ -1,11 +1,11 @@
-# POSTER MAKER PRO v1.8 — Laboratorio de Imagen
+# POSTER MAKER PRO v1.9 — Asistente inteligente de impresión
 
 Novedades:
-- Comparador deslizante de imagen original y resultado mejorado/IA.
-- Analizador de resolución y DPI efectivos estimados según las dimensiones finales configuradas.
-- Diagnóstico de calidad para impresión en gran formato y recomendaciones prácticas.
-- Se conservan las herramientas de mejora normal, Real-ESRGAN ×2/×4, división en hojas, vista previa y exportación.
+- Simulador de resolución: compara matemáticamente la salida original, IA ×2 e IA ×4 y estima los DPI para el tamaño configurado.
+- Tamaño máximo teórico de impresión a 100 y 150 DPI, conservando la proporción original.
+- Zoom ×2/×4 del centro de la imagen para inspeccionar detalles del original y la versión actual.
+- Conserva el laboratorio, comparación antes/después, diagnóstico, mejora normal, superresolución IA, división en hojas y exportación.
 
-Los niveles de DPI son orientativos: la distancia de visualización, el material y la impresora también influyen en el resultado. El diagnóstico no promete una calidad de impresión exacta.
+Importante: la proyección ×2/×4 estima la dimensión en píxeles que tendría el archivo al aplicar la IA; no garantiza que el detalle generado equivalga a una captura original con esa resolución. Los tamaños y DPI son orientativos.
 
 Publicación: sube todos los archivos de esta carpeta a la raíz del repositorio GitHub Pages, sustituyendo la versión anterior.
