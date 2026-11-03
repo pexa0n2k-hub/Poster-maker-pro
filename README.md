@@ -1,21 +1,12 @@
-# POSTER MAKER PRO
+# POSTER MAKER PRO v1.2
+Incluye simulador proporcional junto a una persona de referencia de 1.70 m e iconos PWA de 192 y 512 px.
 
-## Publicar en GitHub Pages
-1. Crea un repositorio nuevo en GitHub.
-2. Sube `index.html`, `manifest.webmanifest` y `sw.js` a la raíz.
-3. En Settings → Pages, selecciona Deploy from a branch, `main` y `/root`.
-4. Abre la URL publicada en Chrome Android y usa “Añadir a pantalla de inicio”.
+## Actualizar GitHub Pages
+1. Descomprime el ZIP.
+2. Sustituye `index.html`, `manifest.webmanifest` y `sw.js` en la raíz del repositorio.
+3. Sube también `icon-192.png` e `icon-512.png`.
+4. Haz Commit Changes y espera la publicación de GitHub Pages.
+5. Recarga Chrome. Si la PWA conserva la versión anterior, desinstálala e instálala otra vez.
 
-## Uso
-- Sube una imagen JPG, PNG o WEBP.
-- Define el tamaño final en centímetros.
-- Elige papel, orientación, margen y solapamiento.
-- Usa división automática o define filas y columnas manualmente.
-- Descarga PDF o las hojas como PNG/JPG.
-
-## Impresión
-En el diálogo de impresión selecciona tamaño real / 100%, sin “ajustar a página”.
-Haz primero una prueba con una hoja para comprobar márgenes y escala.
-
-## Nota técnica
-El generador PDF usa jsPDF desde CDN, por lo que requiere conexión a internet para cargar esa biblioteca. El resto del procesamiento de imagen se realiza en el navegador.
+## Instalar
+Abre la web en Chrome → menú ⋮ → “Instalar aplicación” o “Añadir a pantalla de inicio”.
