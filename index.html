@@ -37,7 +37,7 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 .simLegend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:12px;color:#dbe8ff;margin-top:8px}
 .simLegend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#d9b79a;margin-right:5px}
 .simDimensions{font-size:13px;font-weight:700;color:#fff;text-align:center;margin-top:8px}
-.hidden{display:none!important}
+.hidden{display:none!important}[hidden]{display:none!important}
 @media(max-width:820px){main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:400px){.row{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr 1fr}.card{padding:13px}}
 
@@ -126,16 +126,20 @@ $('file').addEventListener('change',e=>{
  const f=e.target.files[0]; if(!f)return;
  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
  if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); img=new Image();
- img.onload=()=>{$('sourcePreview').innerHTML='';$('sourcePreview').append(img);$('calculate').disabled=false;$('simImg').src=imgUrl;$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
+ img.onload=()=>{$('sourcePreview').innerHTML='';$('sourcePreview').append(img);$('calculate').disabled=false;$('calculate').dataset.ready='1';$('simImg').src=imgUrl;$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
  img.onerror=()=>{$('status').textContent='No se pudo leer esta imagen. Prueba con otro JPG o PNG.';alert('No se pudo abrir la imagen. Intenta guardarla como JPG o PNG y vuelve a seleccionarla.');};
  img.src=imgUrl;
 });
-$('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom'};
-$('mode').onchange=()=>{let m=$('mode').value==='manual';$('manualCols').hidden=!m;$('manualRows').hidden=!m};
+function refreshIfReady(){if(img && $('calculate').dataset.ready==='1')calculate()}
+$('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady()};
+$('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady()};
 $('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
 $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
 $('width').addEventListener('input',()=>{cfg=null;drawSimulator()});
 $('height').addEventListener('input',()=>{cfg=null;drawSimulator()});
+['width','height','orientation','margin','overlap','pw','ph','cols','rows'].forEach(id=>{
+ $(id).addEventListener('change',refreshIfReady);
+});
 $('calculate').onclick=calculate;
 $('reset').onclick=()=>location.reload();
 function paperDims(){
@@ -158,11 +162,11 @@ function calculate(){
    stepX=cols===1?0:Math.max(0,(W-usableW)/(cols-1));
    stepY=rows===1?0:Math.max(0,(H-usableH)/(rows-1));
   } else {cols=Math.max(1,Math.ceil((W-o)/stepX));rows=Math.max(1,Math.ceil((H-o)/stepY))}
- cfg={W,H,pw,ph,m,o,usableW,usableH,stepX,stepY,cols,rows};
+ cfg={W,H,pw,ph,m,o,usableW,usableH,stepX,stepY,cols,rows,manual:$('mode').value==='manual'};
  tiles=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)tiles.push({r,c});
  $('count').textContent=tiles.length;$('gridSize').textContent=`${cols} × ${rows}`;
  const dpi=Math.min(img.naturalWidth/(W/2.54),img.naturalHeight/(H/2.54));$('dpi').textContent=Math.round(dpi)+' dpi';
- $('status').textContent=`Listo: ${tiles.length} hojas. ${W} × ${H} cm.`;
+ $('status').textContent=`Listo: ${tiles.length} hojas. ${W} × ${H} cm. Papel ${pw} × ${ph} cm · ${$('mode').value==='manual'?'división manual':'división automática'}.`;
  $('pdf').disabled=$('png').disabled=$('jpg').disabled=false;
  drawGrid();drawSimulator();
  }catch(e){alert(e.message)}
@@ -196,11 +200,18 @@ function renderTile(t,scale=1){
  const x=canvas.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,canvas.width,canvas.height);
  const s=canvas.width/pageW;
  // Each page covers its usable printable region, with overlap into adjacent tiles.
- let left=t.c*stepX,top=t.r*stepY;
- let right=Math.min(W,left+usableW),bottom=Math.min(H,top+usableH);
+ let left,right,top,bottom;
+ if(cfg.manual){
+  const cellW=W/cols,cellH=H/rows;
+  left=Math.max(0,t.c*cellW-o/2);right=Math.min(W,(t.c+1)*cellW+o/2);
+  top=Math.max(0,t.r*cellH-o/2);bottom=Math.min(H,(t.r+1)*cellH+o/2);
+ }else{
+  left=t.c*stepX;top=t.r*stepY;
+  right=Math.min(W,left+usableW);bottom=Math.min(H,top+usableH);
+ }
  let srcX=left/W*img.naturalWidth,srcY=top/H*img.naturalHeight;
  let srcW=(right-left)/W*img.naturalWidth,srcH=(bottom-top)/H*img.naturalHeight;
- let destX=m*s,destY=m*s,destW=(right-left)*s,destH=(bottom-top)*s;
+ let destX=m*s,destY=m*s,destW=cfg.manual?usableW*s:(right-left)*s,destH=cfg.manual?usableH*s:(bottom-top)*s;
  // Scale the whole artwork to the requested final dimensions.
  x.drawImage(img,srcX,srcY,srcW,srcH,destX,destY,destW,destH);
  x.strokeStyle='#222';x.lineWidth=Math.max(1,s*.025);x.setLineDash([s*.08,s*.06]);
