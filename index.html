@@ -8,6 +8,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#090d18;--panel:rgba(255,255,255,.075);--line:rgba(255,255,255,.13);--txt:#f4f7ff;--muted:#aab4ca;--cyan:#5de5ff;--violet:#a58bff;--green:#62f5bd}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,#17284b 0,transparent 34%),radial-gradient(circle at 90% 20%,#251747 0,transparent 30%),var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
@@ -28,11 +30,9 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 #tileGrid.landscape .tile{aspect-ratio:1.414/1}
 .simWrap{background:linear-gradient(#1b2a40 0 68%,#29374a 68%);border-radius:14px;padding:14px;overflow:hidden}
 .simScene{height:310px;display:flex;align-items:flex-end;justify-content:center;gap:clamp(12px,4vw,30px);position:relative;padding:12px 4px 0;border-bottom:5px solid #8794a9}
-.person{height:190px;width:54px;position:relative;flex:none;display:block}
-.person:before{content:"";position:absolute;width:27px;height:27px;border-radius:50%;background:#d9b79a;top:0;left:13px;box-shadow:inset -4px -2px 0 #b68d73}
-.person:after{content:"";position:absolute;top:31px;left:8px;width:38px;height:78px;border-radius:13px 13px 7px 7px;background:linear-gradient(90deg,#c5d4e8,#f0f4fa 50%,#b9c9df);box-shadow:-8px 76px 0 -5px #26334a,8px 76px 0 -5px #26334a}
+.personSvg{height:190px;width:78px;flex:none;display:block;filter:drop-shadow(0 4px 5px #0006)}
 .posterMock{background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 5px 20px #0008;flex:none;align-self:flex-end;margin-bottom:0;border:3px solid #fff;position:relative}
-.posterMock img{width:100%;height:100%;object-fit:fill}.simCaption{font-size:12px;color:#dbe8ff;text-align:center;margin-top:8px}
+.posterMock img{width:100%;height:100%;object-fit:fill}.posterMock img[src=""]{display:none}#posterPlaceholder{font-size:10px;color:#64748b;text-align:center;padding:4px}.simCaption{font-size:12px;color:#dbe8ff;text-align:center;margin-top:8px}
 #roomPoster{border:3px solid #fff}
 .simLegend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:12px;color:#dbe8ff;margin-top:8px}
 .simLegend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:50%;background:#d9b79a;margin-right:5px}
@@ -82,9 +82,16 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 <div id="tileGrid"></div>
 <p class="hint" id="tileInfo">Cada rectángulo representa una hoja del mosaico.</p>
 </div>
-<div id="simPanel" class="hidden">
+<div id="simPanel">
 <div class="simWrap">
-<div class="simScene"><div class="person" title="Persona de referencia: 1.70 m"></div><div id="roomPoster" class="posterMock"><img id="simImg" alt=""></div></div>
+<div class="simScene">
+ <svg class="personSvg" viewBox="0 0 90 220" role="img" aria-label="Persona de referencia de 1.70 metros">
+  <circle cx="45" cy="18" r="15" fill="#d9b79a"/>
+  <path d="M31 39 Q45 33 59 39 L66 105 Q63 116 55 116 L55 143 L68 211 Q69 219 60 219 L45 151 L30 219 Q21 220 22 211 L35 143 L35 116 Q27 116 24 105 Z" fill="#dce6f5"/>
+  <path d="M31 43 L17 103 Q14 111 8 106 Q3 103 7 95 L22 45 Z M59 43 L73 103 Q76 111 82 106 Q87 103 83 95 L68 45 Z" fill="#c4d4e8"/>
+ </svg>
+ <div id="roomPoster" class="posterMock"><img id="simImg" alt=""><span id="posterPlaceholder">TU PÓSTER</span></div>
+</div>
 <div class="simDimensions" id="simDimensions">Medidas del póster: —</div>
 <div class="simLegend"><span>Persona de referencia: 1.70 m</span><span>Póster a escala proporcional</span></div>
 <div class="simCaption">Comparación visual proporcional: el alto del póster se calcula respecto a una persona de 170 cm.</div>
@@ -113,6 +120,8 @@ $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom'};
 $('mode').onchange=()=>{let m=$('mode').value==='manual';$('manualCols').hidden=!m;$('manualRows').hidden=!m};
 $('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
 $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
+$('width').addEventListener('input',()=>{cfg=null;drawSimulator()});
+$('height').addEventListener('input',()=>{cfg=null;drawSimulator()});
 $('calculate').onclick=calculate;
 $('reset').onclick=()=>location.reload();
 function paperDims(){
@@ -151,19 +160,20 @@ function drawGrid(){
  $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm.`;
 }
 function drawSimulator(){
- if(!cfg)return;
- // Escala común para persona (170 cm) y póster, manteniendo la proporción física.
- const sceneW=Math.max(250,document.querySelector('.simScene').clientWidth-100);
- const sceneH=275;
- const pxPerCm=Math.min(sceneH/cfg.H,sceneW/cfg.W,1.12);
- const posterH=Math.max(8,cfg.H*pxPerCm);
- const posterW=Math.max(8,cfg.W*pxPerCm);
+ const W=cfg?.W ?? +$('width').value;
+ const H=cfg?.H ?? +$('height').value;
+ if(!(W>0&&H>0))return;
+ const sceneW=Math.max(180,document.querySelector('.simScene').clientWidth-125);
+ const sceneH=250;
+ const pxPerCm=Math.min(sceneH/Math.max(H,170),sceneW/W,1.05);
+ const posterH=Math.max(8,H*pxPerCm);
+ const posterW=Math.max(8,W*pxPerCm);
  $('roomPoster').style.height=posterH+'px';
  $('roomPoster').style.width=posterW+'px';
- document.querySelector('.person').style.transform=`scale(${pxPerCm/1.12})`;
- document.querySelector('.person').style.transformOrigin='bottom center';
- $('simDimensions').textContent=`PÓSTER: ${cfg.W} × ${cfg.H} cm`;
- $('simInfo').textContent=`Comparación a escala: persona = 170 cm. Tu póster mide ${cfg.W} cm de ancho por ${cfg.H} cm de alto.`;
+ document.querySelector('.personSvg').style.height=(170*pxPerCm)+'px';
+ document.querySelector('.personSvg').style.width=(70*pxPerCm)+'px';
+ $('simDimensions').textContent=`PÓSTER: ${W} × ${H} cm`;
+ $('simInfo').textContent=`Comparación proporcional: la persona representa 170 cm. El póster mide ${W} cm de ancho por ${H} cm de alto.`;
 }
 function renderTile(t,scale=1){
  const {W,H,m,o,usableW,usableH,stepX,stepY,cols,rows}=cfg;
@@ -213,7 +223,8 @@ $('pdf').onclick=async()=>{
   doc.save('poster_maker_pro.pdf');$('status').textContent=`PDF listo: ${tiles.length} páginas.`;
  }catch(e){alert('No se pudo generar el PDF: '+e.message)}finally{btn.disabled=false}
 };
-window.addEventListener('resize',()=>{if(cfg)drawSimulator()});
+window.addEventListener('resize',drawSimulator);
+window.addEventListener('load',drawSimulator);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body></html>

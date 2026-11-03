@@ -1,12 +1,11 @@
-# POSTER MAKER PRO v1.2
-Incluye simulador proporcional junto a una persona de referencia de 1.70 m e iconos PWA de 192 y 512 px.
+# POSTER MAKER PRO v1.3
+- Simulador de persona de 1.70 m visible al abrir la página.
+- La escala se actualiza al cambiar ancho y alto, sin pulsar Calcular.
+- Silueta SVG completa y espacio de póster de ejemplo.
+- Nuevo identificador PWA para evitar confusión con una identidad anterior.
 
 ## Actualizar GitHub Pages
-1. Descomprime el ZIP.
-2. Sustituye `index.html`, `manifest.webmanifest` y `sw.js` en la raíz del repositorio.
-3. Sube también `icon-192.png` e `icon-512.png`.
-4. Haz Commit Changes y espera la publicación de GitHub Pages.
-5. Recarga Chrome. Si la PWA conserva la versión anterior, desinstálala e instálala otra vez.
+Sustituye `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` e `icon-512.png` en la raíz del repositorio. Haz commit y espera la publicación.
 
-## Instalar
-Abre la web en Chrome → menú ⋮ → “Instalar aplicación” o “Añadir a pantalla de inicio”.
+## Aviso “Ya se instaló esta app”
+Ese mensaje lo genera Android/Chrome, no el código de la web. Comprueba si ya existe un acceso o app de ese sitio en el cajón de aplicaciones. Esta versión incluye un ID de aplicación nuevo para que Chrome trate esta versión como una identidad distinta.
