@@ -12,7 +12,9 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{--bg:#090d18;--panel:rgba(255,255,255,.075);--line:rgba(255,255,255,.13);--txt:#f4f7ff;--muted:#aab4ca;--cyan:#5de5ff;--violet:#a58bff;--green:#62f5bd}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,#17284b 0,transparent 34%),radial-gradient(circle at 90% 20%,#251747 0,transparent 30%),var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 12% 0%,#17284b 0,transparent 34%),radial-gradient(circle at 90% 20%,#251747 0,transparent 30%),var(--bg);color:var(--txt);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif;isolation:isolate}
+body::before{content:"";position:fixed;inset:-18px;z-index:-1;pointer-events:none;opacity:var(--photo-opacity,0);filter:blur(var(--photo-blur,0px));transform:scale(1.035);background-image:linear-gradient(135deg,rgba(5,9,18,.72),rgba(5,9,18,.58)),var(--app-photo);background-size:cover;background-position:center center;background-repeat:no-repeat;transition:opacity .3s ease,filter .25s ease}
+body>*{position:relative;z-index:1}
 header{padding:22px 18px 12px;max-width:1200px;margin:auto}h1{margin:0;font-size:clamp(24px,5vw,36px);letter-spacing:1.5px}h1 span{color:var(--cyan)}.sub{color:var(--muted);margin-top:5px}
 main{max-width:1200px;margin:auto;padding:12px 16px 50px;display:grid;gap:16px;grid-template-columns:minmax(0,1fr) minmax(300px,.9fr)}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:17px;backdrop-filter:blur(18px);box-shadow:0 15px 45px #0004}
@@ -96,6 +98,9 @@ body.touch-device .preview{min-height:180px}
 @media(max-width:400px){.assistantMetrics{grid-template-columns:1fr 1fr}.assistantMetrics>div:last-child{grid-column:span 2}}
 
 
+.appBackgroundTools{max-width:1160px;margin:12px auto 4px;padding:12px 14px;border:1px solid rgba(93,229,255,.28);border-radius:15px;background:rgba(8,16,30,.72);backdrop-filter:blur(18px);box-shadow:0 8px 28px #0004}
+.appBackgroundTools[hidden]{display:none!important}.appBackgroundHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px}.appBackgroundHead b{color:var(--cyan)}.appBackgroundHead span{font-size:11px;color:var(--muted)}.appBackgroundTools .row{gap:8px}.appBackgroundTools button{padding:9px 11px;font-size:12px}.appBackgroundTools input[type=range]{width:100%;accent-color:var(--cyan);padding:0;background:transparent}
+@media(max-width:820px){.appBackgroundTools{margin:10px 12px 4px}}
 .appNav{max-width:1000px;margin:8px auto 14px;padding:5px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:#0c1424;border:1px solid var(--line);border-radius:15px;position:sticky;top:6px;z-index:20;backdrop-filter:blur(18px)}
 .navTab{display:flex;align-items:center;justify-content:center;gap:7px;padding:11px 8px;background:transparent;color:var(--muted);border:1px solid transparent;border-radius:11px;font-size:13px}
 .navTab span{font-size:16px}.navTab.active{background:linear-gradient(110deg,#163d50,#302752);border-color:#5de5ff66;color:#fff;box-shadow:0 0 0 1px #5de5ff22 inset}
@@ -139,7 +144,19 @@ body.touch-device .preview{min-height:180px}
 </style>
 </head>
 <body>
-<header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div></header>
+<header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div><div class="appBackgroundTools" id="appBackgroundTools" hidden>
+ <div class="appBackgroundHead"><b>🌌 Fondo dinámico</b><span id="backgroundState">Tu imagen como fondo</span></div>
+ <div class="row">
+  <button type="button" class="secondary" id="togglePhotoBg">Ocultar fondo</button>
+  <button type="button" class="secondary" id="resetPhotoBg">Fondo original</button>
+ </div>
+ <div class="row">
+  <div><label>Intensidad <b id="bgOpacityValue">32%</b></label><input id="bgOpacity" type="range" min="10" max="65" value="32"></div>
+  <div><label>Desenfoque <b id="bgBlurValue">2 px</b></label><input id="bgBlur" type="range" min="0" max="14" value="2"></div>
+ </div>
+ <small>Al cargar una foto, se usa automáticamente como fondo temporal de la aplicación. No modifica tu imagen de impresión.</small>
+</div>
+</header>
 <nav class="appNav" aria-label="Secciones de Poster Maker">
  <button type="button" class="navTab active" data-page="pageDesign"><span>🖼️</span><b>Diseñador</b></button>
  <button type="button" class="navTab" data-page="pageLab"><span>🔬</span><b>Laboratorio</b></button>
@@ -402,13 +419,27 @@ if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints >
 }
 
 let img=null, originalImg=null, imgUrl=null, tiles=[], cfg=null;
+let photoBackgroundActive=false;
+function setPhotoBackground(active){
+ photoBackgroundActive=!!active && !!imgUrl;
+ document.body.style.setProperty('--app-photo',photoBackgroundActive?`url(\"${imgUrl}\")`:'none');
+ document.body.style.setProperty('--photo-opacity',photoBackgroundActive?(Number($('bgOpacity')?.value||32)/100):0);
+ document.body.style.setProperty('--photo-blur',`${Number($('bgBlur')?.value||2)}px`);
+ $('appBackgroundTools').hidden=!imgUrl;
+ $('togglePhotoBg').textContent=photoBackgroundActive?'Ocultar fondo':'Mostrar fondo';
+ $('backgroundState').textContent=photoBackgroundActive?'Fondo de tu foto activo':'Fondo de tu foto oculto';
+}
+$('togglePhotoBg').addEventListener('click',()=>setPhotoBackground(!photoBackgroundActive));
+$('resetPhotoBg').addEventListener('click',()=>{ $('bgOpacity').value=32;$('bgBlur').value=2;$('bgOpacityValue').textContent='32%';$('bgBlurValue').textContent='2 px';setPhotoBackground(false);});
+$('bgOpacity').addEventListener('input',()=>{$('bgOpacityValue').textContent=$('bgOpacity').value+'%';if(photoBackgroundActive)setPhotoBackground(true)});
+$('bgBlur').addEventListener('input',()=>{$('bgBlurValue').textContent=$('bgBlur').value+' px';document.body.style.setProperty('--photo-blur',$('bgBlur').value+'px')});
 let aiSession=null, aiBusy=false, enhancedUrl=null;
 const AI_MODEL_URL='https://huggingface.co/CoderViking/realesr-general-x4v3-onnx/resolve/main/realesr-general-x4v3.onnx';
 const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
 $('file').addEventListener('change',e=>{
  const f=e.target.files[0]; if(!f)return;
  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
- if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); img=new Image();
+ if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); setPhotoBackground(true); img=new Image();
  img.onload=()=>{originalImg=img;showImage(img);$('calculate').disabled=false;$('calculate').dataset.ready='1';$('applyNormal').disabled=false;$('restoreOriginal').disabled=false;$('ai2x').disabled=$('ai4x').disabled=false;updateQualityInfo();$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
  img.onerror=()=>{$('status').textContent='No se pudo leer esta imagen. Prueba con otro JPG o PNG.';alert('No se pudo abrir la imagen. Intenta guardarla como JPG o PNG y vuelve a seleccionarla.');};
  img.src=imgUrl;

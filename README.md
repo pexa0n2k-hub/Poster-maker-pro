@@ -1,8 +1,11 @@
-# POSTER MAKER PRO v2.4
+# POSTER MAKER PRO v2.5
 
-Actualización: incorpora la sección Restauración PRO con tampón de clonar manual, muestra de origen, pincel ajustable, suavidad, deshacer y restablecer. La imagen restaurada puede aplicarse al diseñador para dividirla e imprimirla.
+## Novedad: Fondo dinámico con tu foto
+- Al cargar una imagen, se coloca automáticamente como fondo temporal de la aplicación.
+- Control para mostrar u ocultar el fondo.
+- Ajustes de intensidad y desenfoque para mantener legibles los controles.
+- Restaurar el fondo original de la interfaz.
+- El fondo no modifica ni afecta la imagen que se imprime; utiliza la foto original cargada.
 
-## Publicación
-1. Descomprime el ZIP.
-2. Sustituye los archivos de la raíz del repositorio de GitHub Pages.
-3. Recarga la PWA. Si conserva archivos antiguos, cierra y vuelve a abrir la aplicación.
+## Actualización
+Reemplaza los archivos del proyecto en la raíz de GitHub Pages y recarga la PWA.
