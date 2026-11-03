@@ -1,9 +1,9 @@
-# POSTER MAKER PRO v2.7
+# POSTER MAKER PRO v2.8
 
-## Novedad: simulador humano dinámico
-- La escala visual ahora responde al número estimado de hojas.
-- Con menos hojas, la persona de referencia se muestra más grande y el póster más pequeño.
-- Al aumentar las hojas, el póster crece y la persona disminuye.
-- La transición es animada y se actualiza al cambiar medidas, papel, márgenes, solapamiento o división manual.
+## Novedad: silueta humana oficial
+- Se reemplazó el modelo genérico por la silueta negra proporcionada.
+- Fondo transparente: solo se muestra la figura negra, sin recuadro ni contorno blanco.
+- Se conserva la animación de escala del simulador según el número de hojas.
+- La silueta mantiene sus proporciones y escala con transición suave.
 
-Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages.
+Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages. Conserva `persona-silueta.png` junto a `index.html`.
