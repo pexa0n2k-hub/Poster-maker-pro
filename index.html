@@ -96,9 +96,10 @@ let img=null, imgUrl=null, tiles=[], cfg=null;
 const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
 $('file').addEventListener('change',e=>{
  const f=e.target.files[0]; if(!f)return;
- if(!/^image\\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
+ if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
  if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); img=new Image();
- img.onload=()=>{$('sourcePreview').innerHTML='';$('sourcePreview').append(img.cloneNode());$('calculate').disabled=false;$('simImg').src=imgUrl;$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`};
+ img.onload=()=>{$('sourcePreview').innerHTML='';$('sourcePreview').append(img);$('calculate').disabled=false;$('simImg').src=imgUrl;$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
+ img.onerror=()=>{$('status').textContent='No se pudo leer esta imagen. Prueba con otro JPG o PNG.';alert('No se pudo abrir la imagen. Intenta guardarla como JPG o PNG y vuelve a seleccionarla.');};
  img.src=imgUrl;
 });
 $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom'};
