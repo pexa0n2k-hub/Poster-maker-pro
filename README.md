@@ -1,11 +1,9 @@
-# POSTER MAKER PRO v2.6
+# POSTER MAKER PRO v2.7
 
-## Novedad: Configuración del fondo dinámico
-- Los controles del fondo dinámico ahora están dentro del botón **Configuración** del encabezado.
-- El panel permanece cerrado al entrar para dejar más espacio al diseñador.
-- La foto cargada sigue aplicándose automáticamente como fondo temporal.
-- Desde Configuración puedes mostrar/ocultar el fondo, ajustar intensidad y desenfoque, o volver al fondo original.
-- Los controles se habilitan al cargar una imagen. El fondo no modifica la imagen de impresión.
+## Novedad: simulador humano dinámico
+- La escala visual ahora responde al número estimado de hojas.
+- Con menos hojas, la persona de referencia se muestra más grande y el póster más pequeño.
+- Al aumentar las hojas, el póster crece y la persona disminuye.
+- La transición es animada y se actualiza al cambiar medidas, papel, márgenes, solapamiento o división manual.
 
-## Actualización
-Reemplaza los archivos del proyecto en la raíz de GitHub Pages y recarga la PWA. La caché se actualizó a v2.6.
+Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages.

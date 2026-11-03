@@ -32,8 +32,8 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 #tileGrid.landscape .tile{aspect-ratio:1.414/1}
 .simWrap{background:linear-gradient(#1b2a40 0 68%,#29374a 68%);border-radius:14px;padding:14px;overflow:hidden}
 .simScene{height:310px;display:flex;align-items:flex-end;justify-content:center;gap:clamp(12px,4vw,30px);position:relative;padding:12px 4px 0;border-bottom:5px solid #8794a9}
-.personSvg{height:190px;width:78px;flex:none;display:block;filter:drop-shadow(0 4px 5px #0006)}
-.posterMock{background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 5px 20px #0008;flex:none;align-self:flex-end;margin-bottom:0;border:3px solid #fff;position:relative}
+.personSvg{height:190px;width:78px;flex:none;display:block;filter:drop-shadow(0 4px 5px #0006);transition:height .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1)}
+.posterMock{background:#fff;display:grid;place-items:center;overflow:hidden;box-shadow:0 5px 20px #0008;flex:none;align-self:flex-end;margin-bottom:0;border:3px solid #fff;position:relative;transition:height .55s cubic-bezier(.2,.8,.2,1),width .55s cubic-bezier(.2,.8,.2,1)}
 .posterMock img{width:100%;height:100%;object-fit:fill}.posterMock img[src=""]{display:none}#posterPlaceholder{font-size:10px;color:#64748b;text-align:center;padding:4px}.simCaption{font-size:12px;color:#dbe8ff;text-align:center;margin-top:8px}
 #roomPoster{border:3px solid #fff}
 .simLegend{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;font-size:12px;color:#dbe8ff;margin-top:8px}
@@ -775,7 +775,7 @@ $('analyzeCurrent').onclick=()=>{
 
 function refreshIfReady(){if(img && $('calculate').dataset.ready==='1')calculate()}
 $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
-$('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
+$('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;drawSimulator();refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
 $('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
 $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
 ['width','height'].forEach(id=>{
@@ -783,7 +783,7 @@ $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel'
  $(id).addEventListener('change',()=>{drawSimulator();updateQualityInfo();drawCropPreview();if($('printAssistant'))analyzePrintAssistant()});
 });
 ['width','height','orientation','margin','overlap','pw','ph','cols','rows'].forEach(id=>{
- $(id).addEventListener('change',()=>{refreshIfReady();if($('printAssistant'))analyzePrintAssistant()});
+ $(id).addEventListener('change',()=>{drawSimulator();refreshIfReady();if($('printAssistant'))analyzePrintAssistant()});
 });
 $('calculate').onclick=calculate;
 $('assemblyScale').addEventListener('input',()=>{ $('assemblyScaleValue').textContent=$('assemblyScale').value+' px'; if(cfg)drawGrid(); });
@@ -847,26 +847,40 @@ function drawGrid(){
  $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm. El orden de impresión es de izquierda a derecha y de arriba hacia abajo.`;
 }
 function drawSimulator(){
- // Leer siempre los controles actuales; no depender de cfg, que puede contener un cálculo anterior.
- const W=Number($('width').value);
- const H=Number($('height').value);
+ // El simulador compara el tamaño visual del póster con una persona de referencia.
+ const W=Number($('width').value), H=Number($('height').value);
  if(!(W>0&&H>0))return;
  const scene=document.querySelector('.simScene');
  if(!scene)return;
- const sceneW=Math.max(180,scene.clientWidth-125);
- const sceneH=250;
- // La persona representa exactamente 170 cm en la misma escala que el póster.
- const pxPerCm=Math.min(sceneH/Math.max(H,170),sceneW/W,1.05);
- const posterH=H*pxPerCm;
- const posterW=W*pxPerCm;
- $('roomPoster').style.height=posterH+'px';
- $('roomPoster').style.width=posterW+'px';
+ const sceneW=Math.max(180,scene.clientWidth-24);
+ const manual=$('mode')&&$('mode').value==='manual';
+ const sheetEstimate=manual
+  ? Math.max(1,(Number($('cols').value)||1)*(Number($('rows').value)||1))
+  : (estimateSheets(W,H)?.total||1);
+ // Más hojas = póster visualmente mayor y persona visualmente menor.
+ // Una hoja muestra una persona grande junto a un póster pequeño.
+ const count=Math.max(1,Math.min(100,sheetEstimate));
+ const progress=Math.min(1,Math.log(count)/Math.log(30));
+ const personH=205-(progress*112); // 205 px con 1 hoja; 93 px con 30 o más.
+ const posterH=76+(progress*132); // 76 px con 1 hoja; 208 px con 30 o más.
+ const aspect=W/H;
+ const posterW=Math.min(posterH*aspect,sceneW*.52);
+ const personW=personH*.36;
+ // Si ambos elementos no caben, reducirlos juntos sin alterar la relación visual.
+ const available=sceneW-32;
+ const totalW=personW+posterW+24;
+ const fit=totalW>available?available/totalW:1;
+ const finalPersonH=personH*fit, finalPersonW=personW*fit;
+ const finalPosterH=posterH*fit, finalPosterW=posterW*fit;
+ $('roomPoster').style.height=finalPosterH+'px';
+ $('roomPoster').style.width=finalPosterW+'px';
  const person=document.querySelector('.personSvg');
- person.style.height=(170*pxPerCm)+'px';
- person.style.width=(70*pxPerCm)+'px';
- $('simDimensions').textContent=`PÓSTER: ${W} × ${H} cm`;
- $('simInfo').textContent=`Comparación proporcional actualizada: persona de referencia 170 cm; póster ${W} cm de ancho × ${H} cm de alto.`;
+ person.style.height=finalPersonH+'px';
+ person.style.width=finalPersonW+'px';
+ $('simDimensions').textContent=`PÓSTER: ${W} × ${H} cm · ${sheetEstimate} ${sheetEstimate===1?'hoja':'hojas'}`;
+ $('simInfo').textContent=`Escala dinámica: ${sheetEstimate} ${sheetEstimate===1?'hoja':'hojas'}. ${sheetEstimate<=1?'La persona se muestra grande y el póster pequeño.':'Al aumentar las hojas, el póster crece visualmente y la persona disminuye.'}`;
 }
+
 function renderTile(t,scale=1){
  const {W,H,m,o,usableW,usableH,stepX,stepY,cols,rows}=cfg;
  const pageW=cfg.pw,pageH=cfg.ph,pxPerCm=300/2.54;
