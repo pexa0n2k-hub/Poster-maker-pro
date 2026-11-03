@@ -1,10 +1,8 @@
-# POSTER MAKER PRO v1.6
+# POSTER MAKER PRO v1.7
 
-## Corrección del simulador
-- El simulador lee directamente el ancho y alto actuales de los campos.
-- Ya no utiliza valores guardados de un cálculo anterior.
-- Se actualiza en tiempo real al escribir y al salir de los campos.
-- La persona de 1.70 m y el póster comparten exactamente la misma escala visual.
+- Mejora normal local: enfoque, contraste, brillo y saturación.
+- Superresolución IA Real-ESRGAN ×2 y ×4 en el navegador.
+- Medición de resolución y DPI aproximados según el tamaño del póster.
+- Restaurar imagen original en cualquier momento.
 
-## Actualizar
-Sustituye en la raíz del repositorio GitHub Pages: `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` e `icon-512.png`. Haz Commit Changes y espera a que se publique.
+Publica todos los archivos de esta carpeta en la raíz de GitHub Pages. La primera ejecución IA necesita internet para descargar ONNX Runtime Web y el modelo (aprox. 5 MB). La IA procesa localmente; no sube la foto. Límite para móviles: 2.5 MP en ×2 y 1.2 MP en ×4. Modelo Real-ESRGAN general x4v3 ONNX bajo licencia BSD-3-Clause, basado en Real-ESRGAN de Xintao Wang.
