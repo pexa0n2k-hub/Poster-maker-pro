@@ -160,8 +160,12 @@ body.touch-device .preview{min-height:180px}
    <button type="button" class="secondary" id="resetPhotoBg">Fondo original</button>
   </div>
   <div class="row">
-   <div><label>Intensidad <b id="bgOpacityValue">32%</b></label><input id="bgOpacity" type="range" min="10" max="65" value="32" disabled></div>
-   <div><label>Desenfoque <b id="bgBlurValue">2 px</b></label><input id="bgBlur" type="range" min="0" max="14" value="2" disabled></div>
+   <div><label>Intensidad <b id="bgOpacityValue">32%</b></label><input id="bgOpacity" type="range" min="0" max="100" value="32" disabled></div>
+   <div><label>Desenfoque <b id="bgBlurValue">2 px</b></label><input id="bgBlur" type="range" min="0" max="30" value="2" disabled></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+   <button type="button" id="saveBackgroundSettings">💾 Guardar configuración</button>
+   <span id="backgroundSaveStatus" class="hint" role="status">Los cambios se guardan al pulsar el botón.</span>
   </div>
   <small>Al cargar una foto, se usa automáticamente como fondo temporal de la aplicación. No modifica tu imagen de impresión.</small>
  </section>
@@ -437,17 +441,36 @@ if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints >
 }
 
 let img=null, originalImg=null, imgUrl=null, tiles=[], cfg=null;
-let photoBackgroundActive=false;
+const BACKGROUND_SETTINGS_KEY='posterMakerProBackgroundSettingsV1';
+function loadBackgroundSettings(){
+ try{
+  const v=JSON.parse(localStorage.getItem(BACKGROUND_SETTINGS_KEY)||'{}');
+  return {opacity:Math.max(0,Math.min(100,Number.isFinite(+v.opacity)?+v.opacity:32)),
+          blur:Math.max(0,Math.min(30,Number.isFinite(+v.blur)?+v.blur:2)),
+          active:typeof v.active==='boolean'?v.active:true};
+ }catch(e){return {opacity:32,blur:2,active:true};}
+}
+const initialBackgroundSettings=loadBackgroundSettings();
+$('bgOpacity').value=initialBackgroundSettings.opacity;
+$('bgBlur').value=initialBackgroundSettings.blur;
+$('bgOpacityValue').textContent=$('bgOpacity').value+'%';
+$('bgBlurValue').textContent=$('bgBlur').value+' px';
+let photoBackgroundActive=initialBackgroundSettings.active;
 function setPhotoBackground(active){
  photoBackgroundActive=!!active && !!imgUrl;
- document.body.style.setProperty('--app-photo',photoBackgroundActive?`url(\"${imgUrl}\")`:'none');
- document.body.style.setProperty('--photo-opacity',photoBackgroundActive?(Number($('bgOpacity')?.value||32)/100):0);
- document.body.style.setProperty('--photo-blur',`${Number($('bgBlur')?.value||2)}px`);
- $('togglePhotoBg').disabled=!imgUrl;
- $('bgOpacity').disabled=!imgUrl;
- $('bgBlur').disabled=!imgUrl;
+ document.body.style.setProperty('--app-photo',photoBackgroundActive?`url("${imgUrl}")`:'none');
+ document.body.style.setProperty('--photo-opacity',photoBackgroundActive?(Number($('bgOpacity').value)/100):0);
+ document.body.style.setProperty('--photo-blur',`${Number($('bgBlur').value)}px`);
+ $('togglePhotoBg').disabled=!imgUrl;$('bgOpacity').disabled=!imgUrl;$('bgBlur').disabled=!imgUrl;
  $('togglePhotoBg').textContent=photoBackgroundActive?'Ocultar fondo':'Mostrar fondo';
  $('backgroundState').textContent=!imgUrl?'Sube una imagen para activar el fondo':(photoBackgroundActive?'Fondo de tu foto activo':'Fondo de tu foto oculto');
+}
+function saveBackgroundSettings(){
+ const settings={opacity:Number($('bgOpacity').value),blur:Number($('bgBlur').value),active:photoBackgroundActive};
+ try{
+  localStorage.setItem(BACKGROUND_SETTINGS_KEY,JSON.stringify(settings));
+  $('backgroundSaveStatus').textContent='✓ Configuración guardada en este dispositivo';
+ }catch(e){$('backgroundSaveStatus').textContent='No se pudo guardar en este navegador.';}
 }
 $('posterUnit').addEventListener('change',()=>{
  const oldUnit=$('posterUnit').value==='m'?'cm':'m';
@@ -461,10 +484,11 @@ $('settingsToggle').addEventListener('click',()=>{
  panel.hidden=!opening;$('settingsToggle').setAttribute('aria-expanded',String(opening));
  $('settingsToggle').textContent=opening?'✕ Cerrar configuración':'⚙️ Configuración';
 });
-$('togglePhotoBg').addEventListener('click',()=>setPhotoBackground(!photoBackgroundActive));
-$('resetPhotoBg').addEventListener('click',()=>{ $('bgOpacity').value=32;$('bgBlur').value=2;$('bgOpacityValue').textContent='32%';$('bgBlurValue').textContent='2 px';setPhotoBackground(false);});
-$('bgOpacity').addEventListener('input',()=>{$('bgOpacityValue').textContent=$('bgOpacity').value+'%';if(photoBackgroundActive)setPhotoBackground(true)});
-$('bgBlur').addEventListener('input',()=>{$('bgBlurValue').textContent=$('bgBlur').value+' px';document.body.style.setProperty('--photo-blur',$('bgBlur').value+'px')});
+$('togglePhotoBg').addEventListener('click',()=>{setPhotoBackground(!photoBackgroundActive);$('backgroundSaveStatus').textContent='Cambio pendiente de guardar';});
+$('resetPhotoBg').addEventListener('click',()=>{ $('bgOpacity').value=32;$('bgBlur').value=2;$('bgOpacityValue').textContent='32%';$('bgBlurValue').textContent='2 px';setPhotoBackground(false);$('backgroundSaveStatus').textContent='Valores originales aplicados; guarda para conservarlos.';});
+$('bgOpacity').addEventListener('input',()=>{$('bgOpacityValue').textContent=$('bgOpacity').value+'%';if(photoBackgroundActive)setPhotoBackground(true);$('backgroundSaveStatus').textContent='Cambios pendientes de guardar';});
+$('bgBlur').addEventListener('input',()=>{$('bgBlurValue').textContent=$('bgBlur').value+' px';document.body.style.setProperty('--photo-blur',$('bgBlur').value+'px');$('backgroundSaveStatus').textContent='Cambios pendientes de guardar';});
+$('saveBackgroundSettings').addEventListener('click',saveBackgroundSettings);
 let aiSession=null, aiBusy=false, enhancedUrl=null;
 const AI_MODEL_URL='https://huggingface.co/CoderViking/realesr-general-x4v3-onnx/resolve/main/realesr-general-x4v3.onnx';
 const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
