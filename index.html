@@ -56,6 +56,23 @@ body.touch-device .preview{min-height:180px}
 #aiProgressBar{height:100%;width:0;background:linear-gradient(90deg,#36cfe9,#a58bff);transition:width .2s}
 .qualityLine{font-size:12px;color:#b9d7ff;margin-top:10px;padding:9px;border-radius:10px;background:#071323}
 
+
+.imageLab{margin:14px 0;padding:14px;border:1px solid rgba(165,139,255,.35);border-radius:16px;background:linear-gradient(145deg,#111b32,#21183b)}
+.imageLab h3{margin:0 0 5px;color:#c7b7ff}
+.compareStage{position:relative;width:100%;max-height:340px;aspect-ratio:3/4;background:#080e19;border-radius:12px;overflow:hidden;margin:12px 0}
+.compareStage>img,.compareAfterClip img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.compareAfterClip{position:absolute;inset:0 auto 0 0;width:50%;overflow:hidden;border-right:0}
+.compareAfterClip img{width:100%;max-width:none;object-fit:contain}
+.compareDivider{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#5de5ff;box-shadow:0 0 10px #5de5ff;pointer-events:none}
+.compareTag{position:absolute;top:8px;padding:4px 7px;border-radius:6px;background:#07111dcc;color:#fff;font-size:9px;letter-spacing:.5px}
+.compareTag.left{left:8px}.compareTag.right{right:8px}
+.labStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:12px}
+.labStat{background:#091426;border:1px solid var(--line);border-radius:10px;padding:9px;min-width:0}
+.labStat small{display:block;font-size:10px}.labStat b{display:block;color:var(--cyan);font-size:14px;margin-top:3px;overflow-wrap:anywhere}
+.labAdvice{margin:10px 0 5px;padding:10px;border-radius:10px;background:#081426;color:#dce8ff;font-size:12px}
+.labNote{display:block;line-height:1.4}
+@media(max-width:400px){.labStats{grid-template-columns:1fr 1fr}.labStats .labStat:last-child{grid-column:span 2}}
+
 </style>
 </head>
 <body>
@@ -99,6 +116,26 @@ body.touch-device .preview{min-height:180px}
  </div>
  <p class="qualityLine" id="qualityLine">Resolución original: —</p>
 </div>
+
+<section class="imageLab" id="imageLab">
+ <h3>🔬 Laboratorio de imagen</h3>
+ <p class="hint">Compara el original con el resultado y revisa si alcanza la resolución para tu impresión.</p>
+ <div class="compareStage" id="compareStage">
+  <img id="compareOriginal" alt="Imagen original">
+  <div class="compareAfterClip" id="compareAfterClip"><img id="compareAfter" alt="Imagen mejorada"></div>
+  <div class="compareDivider" id="compareDivider"></div>
+  <span class="compareTag left">ORIGINAL</span><span class="compareTag right">MEJORADA</span>
+ </div>
+ <label>Desliza para comparar <b id="compareValue">50%</b></label>
+ <input id="compareSlider" type="range" min="0" max="100" value="50" disabled>
+ <div class="labStats">
+  <div class="labStat"><small>Resolución actual</small><b id="labPixels">—</b></div>
+  <div class="labStat"><small>DPI estimados</small><b id="labDpi">—</b></div>
+  <div class="labStat"><small>Calidad para impresión</small><b id="labGrade">—</b></div>
+ </div>
+ <p class="labAdvice" id="labAdvice">Carga una imagen para analizar su calidad de impresión.</p>
+ <small class="labNote">Estimación basada en píxeles y tamaño final. La nitidez percibida también depende de la distancia de visualización, el material y la impresora.</small>
+</section>
 
 <div class="row">
 <div><label>Ancho final (cm)</label><input id="width" type="number" min="1" max="2000" value="100"></div>
@@ -180,14 +217,47 @@ function showImage(image){
  img=image;
  const preview=new Image();preview.src=image.src;preview.alt='Imagen seleccionada';
  $('sourcePreview').innerHTML='';$('sourcePreview').append(preview);
- $('simImg').src=image.src;updateQualityInfo();
+ $('simImg').src=image.src;updateQualityInfo();updateLab();
 }
 function updateQualityInfo(){
  if(!img)return;
  const w=Number($('width').value)||100,h=Number($('height').value)||150;
  const dpi=Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54));
  $('qualityLine').textContent=`Imagen: ${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()} px · ${Math.round(dpi)} DPI efectivos aprox. para ${w} × ${h} cm.`;
+ if($('imageLab'))updateLab();
 }
+function updateLab(){
+ if(!originalImg||!img)return;
+ const stage=$('compareStage');
+ const ratio=originalImg.naturalWidth/originalImg.naturalHeight;
+ stage.style.aspectRatio=`${originalImg.naturalWidth}/${originalImg.naturalHeight}`;
+ stage.style.maxHeight='340px';
+ $('compareOriginal').src=originalImg.src;
+ $('compareAfter').src=img.src;$('compareAfter').style.width=stage.clientWidth+'px';
+ $('compareSlider').disabled=false;
+ const v=Number($('compareSlider').value||50);
+ $('compareAfterClip').style.width=v+'%';
+ $('compareDivider').style.left=v+'%';
+ $('compareValue').textContent=v+'%';
+ const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const dpi=Math.floor(Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54)));
+ $('labPixels').textContent=`${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()}`;
+ $('labDpi').textContent=`${dpi} DPI`;
+ let grade,advice;
+ if(dpi>=150){grade='Excelente';advice='La resolución es alta para este tamaño. Deberías obtener una impresión con buen nivel de detalle, sujeto a la calidad de la imagen y la impresora.';}
+ else if(dpi>=100){grade='Buena';advice='Buena resolución para póster o lona de gran formato. Revisa una prueba al tamaño real si los detalles pequeños son importantes.';}
+ else if(dpi>=72){grade='Aceptable';advice='Puede funcionar para gran formato, especialmente si se observa a cierta distancia. Evita acercarte demasiado para evaluar la impresión.';}
+ else if(dpi>=40){grade='Baja';advice='La imagen puede verse suave o pixelada de cerca. Prueba superresolución IA o reduce el tamaño de impresión.';}
+ else {grade='Muy baja';advice='Hay pocos píxeles para el tamaño elegido. Conviene usar IA ×2/×4 si el dispositivo lo permite, conseguir una fuente de mayor resolución o imprimir más pequeño.';}
+ $('labGrade').textContent=grade;
+ $('labAdvice').textContent=`${advice} Tamaño configurado: ${w} × ${h} cm.`;
+ $('labDpi').style.color=dpi>=100?'#62f5bd':dpi>=72?'#ffd479':'#ff8b9b';
+}
+$('compareSlider').addEventListener('input',()=>{
+ const v=Number($('compareSlider').value);
+ $('compareAfterClip').style.width=v+'%';$('compareDivider').style.left=v+'%';$('compareValue').textContent=v+'%';
+});
+
 function canvasImage(canvas){
  return new Promise((resolve,reject)=>canvas.toBlob(blob=>{
   if(!blob)return reject(new Error('No se pudo generar la imagen procesada.'));

@@ -1,7 +1,7 @@
 {
   "name": "Poster Maker Pro",
   "short_name": "Poster Maker",
-  "id": "./poster-maker-pro-v1-7-1",
+  "id": "./poster-maker-pro-v1-8",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -1,12 +1,11 @@
-# POSTER MAKER PRO v1.7.1
-Corrección de interfaz: la sección de mejora de imagen aparece debajo de la vista previa de la imagen seleccionada.
+# POSTER MAKER PRO v1.8 — Laboratorio de Imagen
 
-Incluye:
-- Mejora normal: enfoque, contraste, brillo y saturación.
-- Superresolución IA Real-ESRGAN ×2 y ×4 desde el navegador.
-- Lectura de resolución y DPI efectivos aproximados.
-- Restaurar imagen original.
-- Procesamiento local; el motor y el modelo se descargan la primera vez.
+Novedades:
+- Comparador deslizante de imagen original y resultado mejorado/IA.
+- Analizador de resolución y DPI efectivos estimados según las dimensiones finales configuradas.
+- Diagnóstico de calidad para impresión en gran formato y recomendaciones prácticas.
+- Se conservan las herramientas de mejora normal, Real-ESRGAN ×2/×4, división en hojas, vista previa y exportación.
 
-En Android, para evitar falta de memoria, IA ×2 admite hasta 2.5 MP e IA ×4 hasta 1.2 MP.
-Sube todos los archivos a la raíz del repositorio de GitHub Pages.
+Los niveles de DPI son orientativos: la distancia de visualización, el material y la impresora también influyen en el resultado. El diagnóstico no promete una calidad de impresión exacta.
+
+Publicación: sube todos los archivos de esta carpeta a la raíz del repositorio GitHub Pages, sustituyendo la versión anterior.
