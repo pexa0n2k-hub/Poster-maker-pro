@@ -40,6 +40,14 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 .hidden{display:none!important}
 @media(max-width:820px){main{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:400px){.row{grid-template-columns:1fr 1fr}.three{grid-template-columns:1fr 1fr}.card{padding:13px}}
+
+/* Mobile override: desktop-site mode on Android can report a wide CSS viewport. */
+body.touch-device main{grid-template-columns:minmax(0,1fr)!important;max-width:680px!important}
+body.touch-device header{max-width:680px!important}
+body.touch-device .card{min-width:0}
+body.touch-device #tileGrid{max-width:100%}
+body.touch-device .simScene{gap:clamp(10px,4vw,24px)}
+body.touch-device .preview{min-height:180px}
 </style>
 </head>
 <body>
@@ -77,11 +85,6 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 <section class="card">
 <h2>② Vista previa y simulador</h2>
 <div class="row"><button class="secondary" id="tabTiles">Distribución de hojas</button><button class="secondary" id="tabSim">Comparar tamaño</button></div>
-<div id="tilesPanel">
-<div class="preview" id="posterPreview"><span class="hint">Primero calcula tu póster</span></div>
-<div id="tileGrid"></div>
-<p class="hint" id="tileInfo">Cada rectángulo representa una hoja del mosaico.</p>
-</div>
 <div id="simPanel">
 <div class="simWrap">
 <div class="simScene">
@@ -98,6 +101,11 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 </div>
 <p class="hint" id="simInfo">La comparación usa las medidas configuradas y mantiene la proporción entre la persona y el póster.</p>
 </div>
+<div id="tilesPanel">
+<div class="preview" id="posterPreview"><span class="hint">Primero calcula tu póster</span></div>
+<div id="tileGrid"></div>
+<p class="hint" id="tileInfo">Cada rectángulo representa una hoja del mosaico.</p>
+</div>
 <h3>③ Exportar</h3>
 <div class="actions"><button id="pdf" disabled>Descargar PDF</button><button class="secondary" id="png" disabled>Descargar hojas PNG</button><button class="secondary" id="jpg" disabled>Descargar hojas JPG</button></div>
 <p class="hint">El PDF contiene una página por hoja, con numeración y marcas de corte. Para imprimir, selecciona “Tamaño real” o “100 %” y desactiva “Ajustar a página”.</p>
@@ -106,6 +114,12 @@ small,.hint{color:var(--muted);font-size:12px}.stats{display:grid;grid-template-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 const $=id=>document.getElementById(id);
+
+// Detect Android/iOS touch devices even when Chrome has "Desktop site" enabled.
+if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints > 0) {
+ document.body.classList.add('touch-device');
+}
+
 let img=null, imgUrl=null, tiles=[], cfg=null;
 const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
 $('file').addEventListener('change',e=>{
