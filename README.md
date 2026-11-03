@@ -1,9 +1,9 @@
-# POSTER MAKER PRO v2.8
+# POSTER MAKER PRO v2.9
 
-## Novedad: silueta humana oficial
-- Se reemplazó el modelo genérico por la silueta negra proporcionada.
-- Fondo transparente: solo se muestra la figura negra, sin recuadro ni contorno blanco.
-- Se conserva la animación de escala del simulador según el número de hojas.
-- La silueta mantiene sus proporciones y escala con transición suave.
+## Medidas del póster en cm o metros
+- En Configuración puedes elegir centímetros o metros para introducir el ancho y el alto final.
+- Al cambiar de unidad, los valores se convierten conservando el tamaño real.
+- Los cálculos internos de impresión siguen trabajando en centímetros.
+- El simulador muestra las dimensiones en cm y m.
 
-Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages. Conserva `persona-silueta.png` junto a `index.html`.
+Incluye la silueta negra transparente de la versión anterior. Sustituye todos los archivos en la raíz de GitHub Pages y conserva `persona-silueta.png`.

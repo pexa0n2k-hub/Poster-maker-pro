@@ -151,6 +151,9 @@ body.touch-device .preview{min-height:180px}
 <header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div>
  <div class="headerActions"><button type="button" class="secondary settingsToggle" id="settingsToggle" aria-expanded="false" aria-controls="appBackgroundTools">⚙️ Configuración</button></div>
  <section class="appBackgroundTools" id="appBackgroundTools" hidden>
+  <div class="appBackgroundHead"><b>📏 Unidades de medida</b><span>Medidas finales del póster</span></div>
+  <div class="row"><div><label>Unidad para ancho y alto</label><select id="posterUnit"><option value="cm">Centímetros (cm)</option><option value="m">Metros (m)</option></select></div></div>
+  <small>Elige cómo quieres introducir las dimensiones. Los cálculos de impresión se convierten automáticamente.</small>
   <div class="appBackgroundHead"><b>🌌 Fondo dinámico</b><span id="backgroundState">Sube una imagen para activar el fondo</span></div>
   <div class="row">
    <button type="button" class="secondary" id="togglePhotoBg" disabled>Ocultar fondo</button>
@@ -231,8 +234,8 @@ body.touch-device .preview{min-height:180px}
 
 
 <div class="row">
-<div><label>Ancho final (cm)</label><input id="width" type="number" min="1" max="2000" value="100"></div>
-<div><label>Alto final (cm)</label><input id="height" type="number" min="1" max="2000" value="150"></div>
+<div><label id="widthLabel">Ancho final (cm)</label><input id="width" type="number" min="1" max="2000" step="1" value="100"></div>
+<div><label id="heightLabel">Alto final (cm)</label><input id="height" type="number" min="1" max="2000" step="1" value="150"></div>
 </div>
 <div class="row">
 <div><label>Papel</label><select id="paper"><option value="a4">A4 (21 × 29.7 cm)</option><option value="a3">A3 (29.7 × 42 cm)</option><option value="letter">Carta (21.59 × 27.94 cm)</option><option value="legal">Oficio / Legal (21.59 × 35.56 cm)</option><option value="tabloid">Tabloide (27.94 × 43.18 cm)</option><option value="custom">Personalizado</option></select></div>
@@ -404,6 +407,19 @@ body.touch-device .preview{min-height:180px}
 <script>
 
 const $=id=>document.getElementById(id);
+
+function dimensionCm(id){
+ const value=Number($(id).value);
+ return $('posterUnit')?.value==='m' ? value*100 : value;
+}
+function updatePosterUnit(){
+ const unit=$('posterUnit')?.value||'cm';
+ const suffix=unit==='m'?'m':'cm';
+ $('widthLabel').textContent=`Ancho final (${suffix})`;
+ $('heightLabel').textContent=`Alto final (${suffix})`;
+ const min=unit==='m'?'0.01':'1', max=unit==='m'?'20':'2000', step=unit==='m'?'0.01':'1';
+ ['width','height'].forEach(id=>{$(id).min=min;$(id).max=max;$(id).step=step;});
+}
 function showAppPage(id){
  document.querySelectorAll('.appPage').forEach(page=>page.hidden=page.id!==id);
  document.querySelectorAll('.navTab').forEach(tab=>tab.classList.toggle('active',tab.dataset.page===id));
@@ -433,6 +449,13 @@ function setPhotoBackground(active){
  $('togglePhotoBg').textContent=photoBackgroundActive?'Ocultar fondo':'Mostrar fondo';
  $('backgroundState').textContent=!imgUrl?'Sube una imagen para activar el fondo':(photoBackgroundActive?'Fondo de tu foto activo':'Fondo de tu foto oculto');
 }
+$('posterUnit').addEventListener('change',()=>{
+ const oldUnit=$('posterUnit').value==='m'?'cm':'m';
+ const factor=oldUnit==='cm'?0.01:100;
+ ['width','height'].forEach(id=>{$(id).value=(Number($(id).value)*factor).toFixed(oldUnit==='cm'?2:0);});
+ updatePosterUnit();drawSimulator();updateQualityInfo();drawCropPreview();if($('printAssistant'))analyzePrintAssistant();
+});
+updatePosterUnit();
 $('settingsToggle').addEventListener('click',()=>{
  const panel=$('appBackgroundTools');const opening=panel.hidden;
  panel.hidden=!opening;$('settingsToggle').setAttribute('aria-expanded',String(opening));
@@ -461,7 +484,7 @@ function drawCropPreview(){
  const ctx=canvas.getContext('2d');const cw=canvas.width,ch=canvas.height;
  ctx.clearRect(0,0,cw,ch);ctx.fillStyle='#101827';ctx.fillRect(0,0,cw,ch);
  const mode=$('fitMode').value;
- const targetRatio=(Number($('width').value)||100)/(Number($('height').value)||150);
+ const targetRatio=(dimensionCm('width')||100)/(dimensionCm('height')||150);
  const stageRatio=cw/ch;
  let boxW=cw,boxH=ch;
  if(targetRatio>stageRatio)boxH=cw/targetRatio;else boxW=ch*targetRatio;
@@ -487,7 +510,7 @@ function resetCropControls(){
 }
 function applyCropComposition(){
  if(!img)return;
- const source=img,ratio=(Number($('width').value)||100)/(Number($('height').value)||150);
+ const source=img,ratio=(dimensionCm('width')||100)/(dimensionCm('height')||150);
  const maxDim=Math.max(source.naturalWidth,source.naturalHeight);
  const outW=Math.min(6000,Math.max(1,Math.round(maxDim*(ratio>=1?1:ratio))));
  const outH=Math.min(6000,Math.max(1,Math.round(outW/ratio)));
@@ -519,7 +542,7 @@ $('cropStage').addEventListener('pointermove',e=>{
  const rect=$('cropStage').getBoundingClientRect();
  const mode=$('fitMode').value;
  if(mode==='stretch')return;
- const ratio=(Number($('width').value)||100)/(Number($('height').value)||150);
+ const ratio=(dimensionCm('width')||100)/(dimensionCm('height')||150);
  const stageRatio=rect.width/rect.height;
  let boxW=rect.width,boxH=rect.height;
  if(ratio>stageRatio)boxH=rect.width/ratio;else boxW=rect.height*ratio;
@@ -545,7 +568,7 @@ function showImage(image){
 }
 function updateQualityInfo(){
  if(!img)return;
- const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const w=dimensionCm('width')||100,h=dimensionCm('height')||150;
  const dpi=Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54));
  $('qualityLine').textContent=`Imagen: ${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()} px · ${Math.round(dpi)} DPI efectivos aprox. para ${w} × ${h} cm.`;
  if($('imageLab'))updateLab();
@@ -563,7 +586,7 @@ function updateLab(){
  $('compareAfterClip').style.width=v+'%';
  $('compareDivider').style.left=v+'%';
  $('compareValue').textContent=v+'%';
- const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const w=dimensionCm('width')||100,h=dimensionCm('height')||150;
  const dpi=Math.floor(Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54)));
  $('labPixels').textContent=`${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()}`;
  $('labDpi').textContent=`${dpi} DPI`;
@@ -586,7 +609,7 @@ $('compareSlider').addEventListener('input',()=>{
 let forecastFactor=1,detailZoom=2;
 function updateForecast(){
  if(!img)return;
- const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const w=dimensionCm('width')||100,h=dimensionCm('height')||150;
  const factor=forecastFactor;
  const pxW=img.naturalWidth*factor,pxH=img.naturalHeight*factor;
  const dpi=Math.floor(Math.min(pxW/(w/2.54),pxH/(h/2.54)));
@@ -745,7 +768,7 @@ function analyzePrintAssistant(){
  $('recommendedSize').textContent=`${recW.toFixed(1)} × ${recH.toFixed(1)} cm`;
  $('recommendedDpi').textContent=`${target} DPI`;
  $('recommendedSheets').textContent=sheets?`${sheets.total} (${sheets.cols} × ${sheets.rows})`:'—';
- const cw=Number($('width').value)||100,ch=Number($('height').value)||150;
+ const cw=dimensionCm('width')||100,ch=dimensionCm('height')||150;
  const currentDpi=Math.floor(Math.min(img.naturalWidth/(cw/2.54),img.naturalHeight/(ch/2.54)));
  let message=`Para conservar el detalle a ${target} DPI, el tamaño recomendado es ${recW.toFixed(1)} × ${recH.toFixed(1)} cm. `;
  if(sheets)message+=`Con el papel y los márgenes actuales serían aproximadamente ${sheets.total} hojas. `;
@@ -763,7 +786,7 @@ $('applyRecommended').onclick=()=>{
 };
 $('analyzeCurrent').onclick=()=>{
  if(!img)return;
- const cw=Number($('width').value)||100,ch=Number($('height').value)||150;
+ const cw=dimensionCm('width')||100,ch=dimensionCm('height')||150;
  const dpi=Math.floor(Math.min(img.naturalWidth/(cw/2.54),img.naturalHeight/(ch/2.54)));
  const sheets=estimateSheets(cw,ch);
  $('assistantAdvice').textContent=`Tamaño actual: ${cw} × ${ch} cm · ${dpi} DPI estimados · ${sheets?sheets.total+' hojas ('+sheets.cols+' × '+sheets.rows+')':'no se pudo calcular el papel'}. ${dpi<72?'Resolución baja: considera reducir el tamaño o aplicar superresolución IA.':dpi<100?'Puede servir para gran formato visto a cierta distancia.':dpi<150?'Densidad adecuada para muchas lonas y pósteres grandes.':'Buena densidad para una impresión con más detalle.'}`;
@@ -793,7 +816,7 @@ function paperDims(){
 function calculate(){
  try{
  if(!img)throw Error('Primero selecciona una imagen.');
- let W=+$('width').value,H=+$('height').value, [pw,ph]=paperDims(),m=+$('margin').value,o=+$('overlap').value;
+ let W=dimensionCm('width'),H=dimensionCm('height'), [pw,ph]=paperDims(),m=+$('margin').value,o=+$('overlap').value;
  if(W<=0||H<=0||m<0||o<0||2*m>=Math.min(pw,ph))throw Error('Revisa las medidas, márgenes y solapamiento.');
  let usableW=pw-2*m,usableH=ph-2*m,stepX=usableW-o,stepY=usableH-o;
  let cols,rows;
@@ -844,7 +867,7 @@ function drawGrid(){
 }
 function drawSimulator(){
  // El simulador compara el tamaño visual del póster con una persona de referencia.
- const W=Number($('width').value), H=Number($('height').value);
+ const W=dimensionCm('width'), H=dimensionCm('height');
  if(!(W>0&&H>0))return;
  const scene=document.querySelector('.simScene');
  if(!scene)return;
@@ -873,7 +896,7 @@ function drawSimulator(){
  const person=document.querySelector('.personSvg');
  person.style.height=finalPersonH+'px';
  person.style.width=finalPersonW+'px';
- $('simDimensions').textContent=`PÓSTER: ${W} × ${H} cm · ${sheetEstimate} ${sheetEstimate===1?'hoja':'hojas'}`;
+ $('simDimensions').textContent=`PÓSTER: ${W.toFixed(1)} × ${H.toFixed(1)} cm (${(W/100).toFixed(2)} × ${(H/100).toFixed(2)} m) · ${sheetEstimate} ${sheetEstimate===1?'hoja':'hojas'}`;
  $('simInfo').textContent=`Escala dinámica: ${sheetEstimate} ${sheetEstimate===1?'hoja':'hojas'}. ${sheetEstimate<=1?'La persona se muestra grande y el póster pequeño.':'Al aumentar las hojas, el póster crece visualmente y la persona disminuye.'}`;
 }
 
