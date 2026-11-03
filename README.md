@@ -1,10 +1,10 @@
-# POSTER MAKER PRO v1.5
+# POSTER MAKER PRO v1.6
 
-## Correcciones
-- Los campos de filas y columnas se ocultan correctamente en modo automático.
-- Al cambiar papel, orientación, márgenes, solapamiento o medidas personalizadas, el cálculo se actualiza automáticamente.
-- En modo manual, cambiar filas o columnas actualiza la cuadrícula y la cantidad de hojas.
-- El render de división manual ahora reparte la imagen entre las celdas seleccionadas.
+## Corrección del simulador
+- El simulador lee directamente el ancho y alto actuales de los campos.
+- Ya no utiliza valores guardados de un cálculo anterior.
+- Se actualiza en tiempo real al escribir y al salir de los campos.
+- La persona de 1.70 m y el póster comparten exactamente la misma escala visual.
 
-## Actualizar GitHub Pages
-Sustituye en la raíz del repositorio: `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png`, `icon-512.png`. Haz commit y espera a que termine la publicación.
+## Actualizar
+Sustituye en la raíz del repositorio GitHub Pages: `index.html`, `manifest.webmanifest`, `sw.js`, `icon-192.png` e `icon-512.png`. Haz Commit Changes y espera a que se publique.

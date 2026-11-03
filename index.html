@@ -135,8 +135,10 @@ $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';ref
 $('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady()};
 $('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
 $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
-$('width').addEventListener('input',()=>{cfg=null;drawSimulator()});
-$('height').addEventListener('input',()=>{cfg=null;drawSimulator()});
+['width','height'].forEach(id=>{
+ $(id).addEventListener('input',drawSimulator);
+ $(id).addEventListener('change',drawSimulator);
+});
 ['width','height','orientation','margin','overlap','pw','ph','cols','rows'].forEach(id=>{
  $(id).addEventListener('change',refreshIfReady);
 });
@@ -178,20 +180,25 @@ function drawGrid(){
  $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm.`;
 }
 function drawSimulator(){
- const W=cfg?.W ?? +$('width').value;
- const H=cfg?.H ?? +$('height').value;
+ // Leer siempre los controles actuales; no depender de cfg, que puede contener un cálculo anterior.
+ const W=Number($('width').value);
+ const H=Number($('height').value);
  if(!(W>0&&H>0))return;
- const sceneW=Math.max(180,document.querySelector('.simScene').clientWidth-125);
+ const scene=document.querySelector('.simScene');
+ if(!scene)return;
+ const sceneW=Math.max(180,scene.clientWidth-125);
  const sceneH=250;
+ // La persona representa exactamente 170 cm en la misma escala que el póster.
  const pxPerCm=Math.min(sceneH/Math.max(H,170),sceneW/W,1.05);
- const posterH=Math.max(8,H*pxPerCm);
- const posterW=Math.max(8,W*pxPerCm);
+ const posterH=H*pxPerCm;
+ const posterW=W*pxPerCm;
  $('roomPoster').style.height=posterH+'px';
  $('roomPoster').style.width=posterW+'px';
- document.querySelector('.personSvg').style.height=(170*pxPerCm)+'px';
- document.querySelector('.personSvg').style.width=(70*pxPerCm)+'px';
+ const person=document.querySelector('.personSvg');
+ person.style.height=(170*pxPerCm)+'px';
+ person.style.width=(70*pxPerCm)+'px';
  $('simDimensions').textContent=`PÓSTER: ${W} × ${H} cm`;
- $('simInfo').textContent=`Comparación proporcional: la persona representa 170 cm. El póster mide ${W} cm de ancho por ${H} cm de alto.`;
+ $('simInfo').textContent=`Comparación proporcional actualizada: persona de referencia 170 cm; póster ${W} cm de ancho × ${H} cm de alto.`;
 }
 function renderTile(t,scale=1){
  const {W,H,m,o,usableW,usableH,stepX,stepY,cols,rows}=cfg;
@@ -249,7 +256,7 @@ $('pdf').onclick=async()=>{
  }catch(e){alert('No se pudo generar el PDF: '+e.message)}finally{btn.disabled=false}
 };
 window.addEventListener('resize',drawSimulator);
-window.addEventListener('load',drawSimulator);
+window.addEventListener('load',()=>{drawSimulator();setTimeout(drawSimulator,250)});
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
 </script>
 </body></html>
