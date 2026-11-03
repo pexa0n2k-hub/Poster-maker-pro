@@ -48,7 +48,15 @@ body.touch-device .card{min-width:0}
 body.touch-device #tileGrid{max-width:100%}
 body.touch-device .simScene{gap:clamp(10px,4vw,24px)}
 body.touch-device .preview{min-height:180px}
-.enhanceBox{margin:14px 0;padding:14px;border:1px solid rgba(93,229,255,.25);border-radius:16px;background:linear-gradient(145deg,#0c1a2b99,#16132c99)}.enhanceBox h3{margin:0 0 5px}.enhanceTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}input[type=range]{width:100%;accent-color:#5de5ff;padding:0!important;background:transparent!important}.enhanceBox label b{color:var(--cyan);float:right}.aiProgress{height:9px;background:#08101e;border-radius:20px;overflow:hidden;margin:12px 0 7px;border:1px solid var(--line)}#aiProgressBar{height:100%;width:0;background:linear-gradient(90deg,#36cfe9,#a58bff);transition:width .2s}.qualityLine{font-size:12px;color:#b9d7ff;margin-top:10px;padding:9px;border-radius:10px;background:#071323}</style>
+
+.enhanceBox{margin:14px 0;padding:14px;border:1px solid rgba(93,229,255,.28);border-radius:16px;background:linear-gradient(145deg,#0c1a2b,#191633)}
+.enhanceBox h3{margin:0 0 6px}.enhanceTabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.enhanceBox input[type=range]{width:100%;accent-color:#5de5ff;padding:0;background:transparent}
+.enhanceBox label b{float:right;color:#5de5ff}.aiProgress{height:9px;background:#08101e;border-radius:20px;overflow:hidden;margin:12px 0;border:1px solid var(--line)}
+#aiProgressBar{height:100%;width:0;background:linear-gradient(90deg,#36cfe9,#a58bff);transition:width .2s}
+.qualityLine{font-size:12px;color:#b9d7ff;margin-top:10px;padding:9px;border-radius:10px;background:#071323}
+
+</style>
 </head>
 <body>
 <header><h1>POSTER <span>MAKER PRO</span></h1><div class="sub">Convierte una imagen en un póster gigante, hoja por hoja.</div></header>
@@ -56,7 +64,42 @@ body.touch-device .preview{min-height:180px}
 <section class="card">
 <h2>① Imagen y configuración</h2>
 <label>Selecciona tu imagen</label><input id="file" type="file" accept="image/png,image/jpeg,image/webp">
-<div class="preview" id="sourcePreview"><span class="hint">Tu imagen aparecerá aquí</span></div><div class="enhanceBox"><h3>Mejorar calidad de imagen</h3><p class="hint">Mejora normal y superresolución IA local. La imagen se procesa en tu dispositivo.</p><div class="enhanceTabs"><button class="secondary" id="normalMode">Mejora normal</button><button class="secondary" id="aiMode">Super resolución IA</button></div><div id="normalTools"><div class="row"><div><label>Enfoque <b id="sharpVal">25</b></label><input id="sharp" type="range" min="0" max="100" value="25"></div><div><label>Contraste <b id="contrastVal">8</b></label><input id="contrast" type="range" min="-30" max="40" value="8"></div></div><div class="row"><div><label>Brillo <b id="brightVal">0</b></label><input id="bright" type="range" min="-30" max="30" value="0"></div><div><label>Saturación <b id="satVal">5</b></label><input id="sat" type="range" min="-50" max="50" value="5"></div></div><div class="actions"><button id="applyNormal" disabled>Aplicar mejora</button><button class="secondary" id="restoreOriginal" disabled>Restaurar original</button></div><small>Los ajustes normales mejoran nitidez, luz y color; no inventan detalle nuevo.</small></div><div id="aiTools" hidden><label>Resolución de salida</label><div class="row"><button id="ai2x" disabled>IA ×2</button><button id="ai4x" disabled>IA ×4</button></div><div class="aiProgress"><div id="aiProgressBar"></div></div><p class="hint" id="aiStatus">Selecciona una imagen para activar la IA. La primera vez descarga el motor y un modelo de aproximadamente 5 MB.</p><small>Real-ESRGAN ×4. Para ×2, el resultado se reduce con alta calidad. La imagen no se sube.</small></div><div class="qualityLine" id="qualityLine">Resolución original: —</div></div>
+<div class="preview" id="sourcePreview"><span class="hint">Tu imagen aparecerá aquí</span></div>
+
+<div class="enhanceBox" id="enhanceBox">
+ <h3>✨ Mejorar calidad de imagen</h3>
+ <p class="hint">Elige cómo quieres mejorar tu imagen antes de dividirla para imprimir.</p>
+ <div class="enhanceTabs">
+  <button type="button" class="secondary" id="normalMode">Mejora normal</button>
+  <button type="button" class="secondary" id="aiMode">Super resolución IA</button>
+ </div>
+ <div id="normalTools">
+  <div class="row">
+   <div><label>Enfoque <b id="sharpVal">25</b></label><input id="sharp" type="range" min="0" max="100" value="25"></div>
+   <div><label>Contraste <b id="contrastVal">8</b></label><input id="contrast" type="range" min="-30" max="40" value="8"></div>
+  </div>
+  <div class="row">
+   <div><label>Brillo <b id="brightVal">0</b></label><input id="bright" type="range" min="-30" max="30" value="0"></div>
+   <div><label>Saturación <b id="satVal">5</b></label><input id="sat" type="range" min="-50" max="50" value="5"></div>
+  </div>
+  <div class="row">
+   <button type="button" id="applyNormal" disabled>Aplicar mejora</button>
+   <button type="button" class="secondary" id="restoreOriginal" disabled>Restaurar original</button>
+  </div>
+  <small>Esta mejora ajusta nitidez, luz y color. No inventa detalle que no existe.</small>
+ </div>
+ <div id="aiTools" hidden>
+  <div class="row">
+   <button type="button" id="ai2x" disabled>IA ×2</button>
+   <button type="button" id="ai4x" disabled>IA ×4</button>
+  </div>
+  <div class="aiProgress"><div id="aiProgressBar"></div></div>
+  <p class="hint" id="aiStatus">Selecciona una imagen para activar la superresolución.</p>
+  <small>La primera vez requiere internet para descargar el motor y el modelo IA. El procesamiento se realiza en el navegador.</small>
+ </div>
+ <p class="qualityLine" id="qualityLine">Resolución original: —</p>
+</div>
+
 <div class="row">
 <div><label>Ancho final (cm)</label><input id="width" type="number" min="1" max="2000" value="100"></div>
 <div><label>Alto final (cm)</label><input id="height" type="number" min="1" max="2000" value="150"></div>
@@ -120,25 +163,125 @@ if (window.matchMedia('(pointer: coarse)').matches || navigator.maxTouchPoints >
  document.body.classList.add('touch-device');
 }
 
-let img=null, originalImg=null, imgUrl=null, tiles=[], cfg=null, aiSession=null, aiBusy=false;
-const AI_MODEL_URL="https://huggingface.co/CoderViking/realesr-general-x4v3-onnx/resolve/main/realesr-general-x4v3.onnx";
+let img=null, originalImg=null, imgUrl=null, tiles=[], cfg=null;
+let aiSession=null, aiBusy=false, enhancedUrl=null;
+const AI_MODEL_URL='https://huggingface.co/CoderViking/realesr-general-x4v3-onnx/resolve/main/realesr-general-x4v3.onnx';
 const papers={a4:[21,29.7],a3:[29.7,42],letter:[21.59,27.94],legal:[21.59,35.56],tabloid:[27.94,43.18]};
 $('file').addEventListener('change',e=>{
  const f=e.target.files[0]; if(!f)return;
  if(!/^image\/(png|jpeg|webp)$/.test(f.type)){alert('Formato no compatible. Usa JPG, PNG o WEBP.');return}
  if(imgUrl)URL.revokeObjectURL(imgUrl); imgUrl=URL.createObjectURL(f); img=new Image();
- img.onload=()=>{originalImg=img;showCurrentImage(img);$('calculate').disabled=false;$('calculate').dataset.ready='1';$('applyNormal').disabled=$('restoreOriginal').disabled=$('ai2x').disabled=$('ai4x').disabled=false;updateQualityInfo();$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
+ img.onload=()=>{originalImg=img;showImage(img);$('calculate').disabled=false;$('calculate').dataset.ready='1';$('applyNormal').disabled=false;$('restoreOriginal').disabled=false;$('ai2x').disabled=$('ai4x').disabled=false;updateQualityInfo();$('status').textContent=`Imagen cargada: ${img.naturalWidth} × ${img.naturalHeight} px`;};
  img.onerror=()=>{$('status').textContent='No se pudo leer esta imagen. Prueba con otro JPG o PNG.';alert('No se pudo abrir la imagen. Intenta guardarla como JPG o PNG y vuelve a seleccionarla.');};
  img.src=imgUrl;
 });
-function showCurrentImage(image){img=image;$('sourcePreview').innerHTML='';const p=new Image();p.alt='Imagen seleccionada';p.src=image.src;$('sourcePreview').append(p);$('simImg').src=image.src;$('posterPlaceholder').hidden=true;updateQualityInfo()}
-function updateQualityInfo(){if(!img)return;const w=Number($('width').value)||100,h=Number($('height').value)||150,dpi=Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54));$('qualityLine').textContent=`Imagen actual: ${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()} px · ${Math.round(dpi)} DPI efectivos aprox. al imprimir ${w} × ${h} cm.`}
-function canvasImage(c){return new Promise((resolve,reject)=>c.toBlob(b=>{if(!b)return reject(Error('No se pudo crear la imagen.'));const u=URL.createObjectURL(b),im=new Image();im.onload=()=>resolve({image:im,url:u});im.onerror=()=>reject(Error('No se pudo abrir la imagen procesada.'));im.src=u},'image/png'))}
-function applyNormal(){if(!originalImg)return;const ratio=Math.min(1,6000/Math.max(originalImg.naturalWidth,originalImg.naturalHeight)),c=document.createElement('canvas');c.width=Math.round(originalImg.naturalWidth*ratio);c.height=Math.round(originalImg.naturalHeight*ratio);const x=c.getContext('2d',{willReadFrequently:true}),sharp=Number($('sharp').value)/100;x.filter=`brightness(${1+Number($('bright').value)/100}) contrast(${1+Number($('contrast').value)/100}) saturate(${1+Number($('sat').value)/100})`;x.drawImage(originalImg,0,0,c.width,c.height);x.filter='none';if(sharp){const im=x.getImageData(0,0,c.width,c.height),src=new Uint8ClampedArray(im.data),d=im.data,a=sharp*.48;for(let y=1;y<c.height-1;y++)for(let xx=1;xx<c.width-1;xx++){const i=(y*c.width+xx)*4;for(let k=0;k<3;k++){const blur=(src[i-4+k]+src[i+4+k]+src[i-c.width*4+k]+src[i+c.width*4+k])/4;d[i+k]=Math.max(0,Math.min(255,src[i+k]+(src[i+k]-blur)*a))}}x.putImageData(im,0,0)}canvasImage(c).then(({image,url})=>{if(window.enhancedUrl)URL.revokeObjectURL(window.enhancedUrl);window.enhancedUrl=url;showCurrentImage(image);if($('calculate').dataset.ready==='1')calculate();$('status').textContent='Mejora normal aplicada.'}).catch(e=>alert(e.message))}
-async function loadOrt(){if(window.ort)return window.ort;$('aiStatus').textContent='Cargando motor IA…';await new Promise((ok,no)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js';sc.onload=()=>{window.ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';ok()};sc.onerror=()=>no(Error('No se pudo cargar el motor IA. Revisa tu conexión.'));document.head.append(sc)});return window.ort}
-async function getAiSession(){const ort=await loadOrt();if(!aiSession){$('aiStatus').textContent='Descargando modelo Real-ESRGAN (aprox. 5 MB)…';aiSession=await ort.InferenceSession.create(AI_MODEL_URL,{executionProviders:['wasm'],graphOptimizationLevel:'all'})}return aiSession}
-async function upscaleAI(factor){if(!img||aiBusy)return;aiBusy=true;$('ai2x').disabled=$('ai4x').disabled=true;try{const ort=await loadOrt(),session=await getAiSession(),sw=img.naturalWidth,sh=img.naturalHeight,max=factor===4?1200000:2500000;if(sw*sh>max)throw Error(`Imagen demasiado grande para IA ×${factor}. Límite recomendado ${(max/1e6).toFixed(1)} MP. Reduce su tamaño o usa mejora normal.`);const tile=128,over=12,stride=tile-over*2,out=document.createElement('canvas');out.width=sw*factor;out.height=sh*factor;const oc=out.getContext('2d'),work=document.createElement('canvas'),wc=work.getContext('2d',{willReadFrequently:true});const cols=Math.ceil(sw/stride),rows=Math.ceil(sh/stride),total=cols*rows;let done=0;for(let y=0;y<sh;y+=stride)for(let x=0;x<sw;x+=stride){const w=Math.min(tile,sw-x),h=Math.min(tile,sh-y);work.width=w;work.height=h;wc.drawImage(img,x,y,w,h,0,0,w,h);const data=wc.getImageData(0,0,w,h).data,buf=new Float32Array(3*w*h),area=w*h;for(let j=0,k=0;j<data.length;j+=4,k++){buf[k]=data[j]/255;buf[area+k]=data[j+1]/255;buf[2*area+k]=data[j+2]/255}const t=new ort.Tensor('float32',buf,[1,3,h,w]),res=await session.run({[session.inputNames[0]]:t}),v=res[session.outputNames[0]].data,ow=w*4,oh=h*4,rgba=new Uint8ClampedArray(ow*oh*4);for(let k=0;k<v.length;k++){const pix=k%(ow*oh),ch=Math.floor(k/(ow*oh));rgba[pix*4+ch]=Math.max(0,Math.min(255,Math.round(v[k]*255)))}for(let k=0;k<ow*oh;k++)rgba[k*4+3]=255;const tc=document.createElement('canvas');tc.width=ow;tc.height=oh;tc.getContext('2d').putImageData(new ImageData(rgba,ow,oh),0,0);const l=x===0?0:over*4,top=y===0?0:over*4,r=x+w>=sw?ow:(w-over)*4,b=y+h>=sh?oh:(h-over)*4,dx=(x+(x===0?0:over))*factor,dy=(y+(y===0?0:over))*factor;oc.drawImage(tc,l,top,r-l,b-top,dx,dy,(r-l)*factor/4,(b-top)*factor/4);done++;$('aiProgressBar').style.width=(done/total*100)+'%';$('aiStatus').textContent=`Procesando mosaico ${done}/${total}…`;await new Promise(r=>setTimeout(r,0))}const {image,url}=await canvasImage(out);if(window.enhancedUrl)URL.revokeObjectURL(window.enhancedUrl);window.enhancedUrl=url;showCurrentImage(image);if($('calculate').dataset.ready==='1')calculate();$('aiStatus').textContent=`Superresolución IA ×${factor} aplicada: ${image.naturalWidth.toLocaleString()} × ${image.naturalHeight.toLocaleString()} px.`;$('status').textContent=`Superresolución IA ×${factor} aplicada.`}catch(e){$('aiStatus').textContent='No se pudo completar: '+e.message;alert(e.message);aiSession=null}finally{aiBusy=false;$('ai2x').disabled=$('ai4x').disabled=!img}}
-$('normalMode').onclick=()=>{$('normalTools').hidden=false;$('aiTools').hidden=true};$('aiMode').onclick=()=>{$('normalTools').hidden=true;$('aiTools').hidden=false};['sharp','contrast','bright','sat'].forEach(id=>$(id).addEventListener('input',()=>$(id+'Val').textContent=$(id).value));$('applyNormal').onclick=applyNormal;$('restoreOriginal').onclick=()=>{if(!originalImg)return;if(window.enhancedUrl){URL.revokeObjectURL(window.enhancedUrl);window.enhancedUrl=null}showCurrentImage(originalImg);if($('calculate').dataset.ready==='1')calculate();$('status').textContent='Imagen original restaurada.'};$('ai2x').onclick=()=>upscaleAI(2);$('ai4x').onclick=()=>upscaleAI(4);
+
+function showImage(image){
+ img=image;
+ const preview=new Image();preview.src=image.src;preview.alt='Imagen seleccionada';
+ $('sourcePreview').innerHTML='';$('sourcePreview').append(preview);
+ $('simImg').src=image.src;updateQualityInfo();
+}
+function updateQualityInfo(){
+ if(!img)return;
+ const w=Number($('width').value)||100,h=Number($('height').value)||150;
+ const dpi=Math.min(img.naturalWidth/(w/2.54),img.naturalHeight/(h/2.54));
+ $('qualityLine').textContent=`Imagen: ${img.naturalWidth.toLocaleString()} × ${img.naturalHeight.toLocaleString()} px · ${Math.round(dpi)} DPI efectivos aprox. para ${w} × ${h} cm.`;
+}
+function canvasImage(canvas){
+ return new Promise((resolve,reject)=>canvas.toBlob(blob=>{
+  if(!blob)return reject(new Error('No se pudo generar la imagen procesada.'));
+  const url=URL.createObjectURL(blob),image=new Image();
+  image.onload=()=>resolve({image,url});image.onerror=()=>reject(new Error('No se pudo cargar el resultado.'));
+  image.src=url;
+ },'image/png'));
+}
+function applyNormal(){
+ if(!originalImg)return;
+ const w=originalImg.naturalWidth,h=originalImg.naturalHeight;
+ const c=document.createElement('canvas');c.width=w;c.height=h;
+ const x=c.getContext('2d',{willReadFrequently:true});
+ x.filter=`brightness(${1+Number($('bright').value)/100}) contrast(${1+Number($('contrast').value)/100}) saturate(${1+Number($('sat').value)/100})`;
+ x.drawImage(originalImg,0,0);x.filter='none';
+ const amount=Number($('sharp').value)/100;
+ if(amount>0){
+  const im=x.getImageData(0,0,w,h),src=new Uint8ClampedArray(im.data),d=im.data;
+  for(let y=1;y<h-1;y++)for(let xx=1;xx<w-1;xx++){
+   const i=(y*w+xx)*4;
+   for(let k=0;k<3;k++){
+    const avg=(src[i-4+k]+src[i+4+k]+src[i-w*4+k]+src[i+w*4+k])/4;
+    d[i+k]=Math.max(0,Math.min(255,src[i+k]+(src[i+k]-avg)*amount*.5));
+   }
+  }
+  x.putImageData(im,0,0);
+ }
+ canvasImage(c).then(({image,url})=>{
+  if(enhancedUrl)URL.revokeObjectURL(enhancedUrl);
+  enhancedUrl=url;showImage(image);
+  if($('calculate').dataset.ready==='1')calculate();
+  $('status').textContent='Mejora normal aplicada.';
+ }).catch(e=>alert(e.message));
+}
+async function loadOrt(){
+ if(window.ort)return window.ort;
+ $('aiStatus').textContent='Cargando motor de superresolución…';
+ await new Promise((resolve,reject)=>{
+  const sc=document.createElement('script');
+  sc.src='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.min.js';
+  sc.onload=()=>{window.ort.env.wasm.wasmPaths='https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';resolve()};
+  sc.onerror=()=>reject(new Error('No se pudo cargar el motor IA. Comprueba tu conexión.'));
+  document.head.append(sc);
+ });
+ return window.ort;
+}
+async function runAI(factor){
+ if(!img||aiBusy)return;
+ aiBusy=true;$('ai2x').disabled=$('ai4x').disabled=true;
+ try{
+  const limit=factor===4?1200000:2500000;
+  if(img.naturalWidth*img.naturalHeight>limit)throw new Error(`Para IA ×${factor}, la imagen debe tener como máximo ${(limit/1000000).toFixed(1)} megapíxeles en este dispositivo.`);
+  const ort=await loadOrt();
+  $('aiStatus').textContent='Descargando modelo Real-ESRGAN la primera vez…';
+  if(!aiSession)aiSession=await ort.InferenceSession.create(AI_MODEL_URL,{executionProviders:['wasm']});
+  const tile=128,overlap=8,step=tile-overlap*2,srcW=img.naturalWidth,srcH=img.naturalHeight;
+  const out=document.createElement('canvas');out.width=srcW*factor;out.height=srcH*factor;
+  const oc=out.getContext('2d');
+  const work=document.createElement('canvas'),wc=work.getContext('2d',{willReadFrequently:true});
+  const xs=[];for(let x=0;x<srcW;x+=step)xs.push(x);
+  const ys=[];for(let y=0;y<srcH;y+=step)ys.push(y);
+  const total=xs.length*ys.length;let done=0;
+  for(const y of ys)for(const x of xs){
+   const tw=Math.min(tile,srcW-x),th=Math.min(tile,srcH-y);
+   work.width=tw;work.height=th;wc.drawImage(img,x,y,tw,th,0,0,tw,th);
+   const px=wc.getImageData(0,0,tw,th).data,n=tw*th,input=new Float32Array(n*3);
+   for(let i=0,j=0;i<px.length;i+=4,j++){input[j]=px[i]/255;input[n+j]=px[i+1]/255;input[2*n+j]=px[i+2]/255;}
+   const tensor=new ort.Tensor('float32',input,[1,3,th,tw]);
+   const result=await aiSession.run({[aiSession.inputNames[0]]:tensor});
+   const data=result[aiSession.outputNames[0]].data,ow=tw*4,oh=th*4,rgba=new Uint8ClampedArray(n*16*4);
+   for(let i=0;i<ow*oh;i++){rgba[i*4]=Math.min(255,Math.max(0,data[i]*255));rgba[i*4+1]=Math.min(255,Math.max(0,data[ow*oh+i]*255));rgba[i*4+2]=Math.min(255,Math.max(0,data[2*ow*oh+i]*255));rgba[i*4+3]=255;}
+   const tc=document.createElement('canvas');tc.width=ow;tc.height=oh;tc.getContext('2d').putImageData(new ImageData(rgba,ow,oh),0,0);
+   const l=x===0?0:overlap*4,t=y===0?0:overlap*4,r=x+tw>=srcW?ow:(tw-overlap)*4,b=y+th>=srcH?oh:(th-overlap)*4;
+   oc.drawImage(tc,l,t,r-l,b-t,(x+(x===0?0:overlap))*factor,(y+(y===0?0:overlap))*factor,(r-l)*factor/4,(b-t)*factor/4);
+   done++;$('aiProgressBar').style.width=(done/total*100)+'%';$('aiStatus').textContent=`Procesando imagen: ${done}/${total} bloques`;
+   await new Promise(r=>setTimeout(r,0));
+  }
+  let final=out;
+  if(factor===2){const c=document.createElement('canvas');c.width=srcW*2;c.height=srcH*2;c.getContext('2d').drawImage(out,0,0,c.width,c.height);final=c;}
+  const {image,url}=await canvasImage(final);
+  if(enhancedUrl)URL.revokeObjectURL(enhancedUrl);enhancedUrl=url;showImage(image);
+  if($('calculate').dataset.ready==='1')calculate();
+  $('aiStatus').textContent=`¡Listo! Resultado IA ×${factor}: ${image.naturalWidth} × ${image.naturalHeight} px.`;
+  $('status').textContent=`Superresolución IA ×${factor} aplicada.`;
+ }catch(e){$('aiStatus').textContent='No se pudo completar: '+e.message;alert(e.message);aiSession=null;}
+ finally{aiBusy=false;$('ai2x').disabled=$('ai4x').disabled=!img;}
+}
+$('normalMode').onclick=()=>{$('normalTools').hidden=false;$('aiTools').hidden=true};
+$('aiMode').onclick=()=>{$('normalTools').hidden=true;$('aiTools').hidden=false};
+['sharp','contrast','bright','sat'].forEach(id=>$(id).addEventListener('input',()=>$(id+'Val').textContent=$(id).value));
+$('applyNormal').onclick=applyNormal;
+$('restoreOriginal').onclick=()=>{if(!originalImg)return;if(enhancedUrl)URL.revokeObjectURL(enhancedUrl);enhancedUrl=null;showImage(originalImg);if($('calculate').dataset.ready==='1')calculate();$('status').textContent='Imagen original restaurada.'};
+$('ai2x').onclick=()=>runAI(2);$('ai4x').onclick=()=>runAI(4);
+
 function refreshIfReady(){if(img && $('calculate').dataset.ready==='1')calculate()}
 $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady()};
 $('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;refreshIfReady()};
