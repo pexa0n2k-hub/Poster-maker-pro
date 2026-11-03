@@ -1,11 +1,11 @@
-# POSTER MAKER PRO v2.2 — Encuadre y composición
+# POSTER MAKER PRO v2.3 — Vista previa de armado
 
 Novedades:
-- Editor de encuadre integrado en Diseñador.
-- Arrastrar con el dedo o ratón para mover la imagen.
-- Zoom de composición.
-- Modos: Rellenar (recorta sobrantes), Ajustar completo (puede dejar bandas) y Estirar (puede deformar).
-- Aplicar encuadre genera una nueva imagen que se usa para la vista previa, mosaico y exportaciones.
-- La proporción del área de composición sigue las dimensiones finales del póster.
+- Mapa visual del póster completo dividido en hojas.
+- Cada hoja muestra una miniatura del fragmento correspondiente.
+- Etiqueta de fila-columna y número de orden de impresión.
+- Control para ampliar o reducir las miniaturas en pantalla.
+- Lectura del armado de izquierda a derecha y de arriba hacia abajo.
+- Conserva las funciones anteriores: encuadre, mejoras, laboratorio, asistente y exportación PDF/PNG/JPG.
 
-Sube todos los archivos de esta carpeta a la raíz del repositorio GitHub Pages, sustituyendo los anteriores.
+Actualización: descomprime el ZIP y sustituye los archivos anteriores en la raíz del repositorio GitHub Pages. Después, recarga la PWA; si conserva la versión anterior, ciérrala completamente y vuelve a abrirla para que se actualice la caché.

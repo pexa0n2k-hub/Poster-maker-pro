@@ -113,6 +113,21 @@ body.touch-device .preview{min-height:180px}
 .cropStage:after{content:"ARRASTRA PARA ENCUADRAR";position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:9px;letter-spacing:1px;color:#fff;text-shadow:0 1px 4px #000;pointer-events:none}
 .cropEditor input[type=range]{width:100%;accent-color:#5de5ff}
 
+.assemblyBox{margin:12px 0;padding:13px;border:1px solid rgba(93,229,255,.28);border-radius:15px;background:linear-gradient(145deg,#0c1a2b,#171633)}
+.assemblyHead{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.assemblyStats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0}
+.assemblyStats>div{background:#091426;border:1px solid var(--line);border-radius:10px;padding:8px;min-width:0}
+.assemblyStats small{display:block;font-size:10px}.assemblyStats b{display:block;color:var(--cyan);font-size:14px;overflow-wrap:anywhere}
+.assemblyViewport{max-width:100%;max-height:520px;overflow:auto;padding:10px;background:#070d18;border:1px solid var(--line);border-radius:12px;overscroll-behavior:contain}
+#tileGrid{display:grid;gap:5px;width:max-content;max-width:none;margin:0 auto;justify-content:center;align-items:start}
+.assemblyTile{position:relative;min-width:0;overflow:hidden;background:#fff;border:1px solid #9aa8bb;border-radius:3px;box-shadow:0 2px 7px #0007}
+.assemblyTile canvas{display:block;width:100%;height:auto}
+.assemblyTile span{position:absolute;top:3px;left:3px;background:#07111ddd;color:#fff;border:1px solid #5de5ff99;border-radius:4px;padding:2px 4px;font-size:9px;font-weight:800;line-height:1.2}
+.assemblyTile em{position:absolute;right:3px;bottom:3px;background:#07111dcc;color:#bcefff;border-radius:4px;padding:2px 4px;font-size:8px;font-style:normal}
+.assemblyLegend{display:flex;gap:12px;flex-wrap:wrap;margin-top:9px;font-size:11px;color:var(--muted)}
+.assemblyLegend span:before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:#5de5ff;margin-right:5px}
+@media(max-width:400px){.assemblyStats{grid-template-columns:1fr 1fr}.assemblyStats>div:last-child{grid-column:span 2}}
+
 </style>
 </head>
 <body>
@@ -232,7 +247,14 @@ body.touch-device .preview{min-height:180px}
 </div>
 <div id="tilesPanel">
 <div class="preview" id="posterPreview"><span class="hint">Primero calcula tu póster</span></div>
-<div id="tileGrid"></div>
+<div class="assemblyBox" id="assemblyBox">
+ <div class="assemblyHead"><b>🧩 Mapa de armado</b><small id="assemblyStatus">Calcula el póster para generar el mosaico.</small></div>
+ <div class="assemblyStats"><div><small>Orden de lectura</small><b>Izquierda → derecha</b></div><div><small>Secuencia</small><b>Arriba → abajo</b></div><div><small>Hojas totales</small><b id="assemblyTotal">—</b></div></div>
+ <label for="assemblyScale">Tamaño de las hojas en pantalla <b id="assemblyScaleValue">72 px</b></label>
+ <input id="assemblyScale" type="range" min="48" max="110" step="4" value="72">
+ <div class="assemblyViewport"><div id="tileGrid" aria-label="Vista previa de armado del póster"></div></div>
+ <div class="assemblyLegend"><span>Vista de cada fragmento</span><span>Etiqueta: fila-columna</span><span>Número: orden de impresión</span></div>
+</div>
 <p class="hint" id="tileInfo">Cada rectángulo representa una hoja del mosaico.</p>
 </div>
 <h3>③ Exportar</h3>
@@ -688,6 +710,7 @@ $('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel'
  $(id).addEventListener('change',()=>{refreshIfReady();if($('printAssistant'))analyzePrintAssistant()});
 });
 $('calculate').onclick=calculate;
+$('assemblyScale').addEventListener('input',()=>{ $('assemblyScaleValue').textContent=$('assemblyScale').value+' px'; if(cfg)drawGrid(); });
 $('reset').onclick=()=>location.reload();
 function paperDims(){
  let p=$('paper').value, d=p==='custom'?[+ $('pw').value,+ $('ph').value]:papers[p];
@@ -720,9 +743,32 @@ function calculate(){
 }
 function drawGrid(){
  $('posterPreview').innerHTML='';let cv=document.createElement('canvas');cv.width=600;cv.height=Math.round(600*cfg.H/cfg.W);let ctx=cv.getContext('2d');ctx.drawImage(img,0,0,cv.width,cv.height);$('posterPreview').append(cv);
- let g=$('tileGrid');g.innerHTML='';g.style.gridTemplateColumns=`repeat(${cfg.cols},minmax(0,1fr))`;g.className=cfg.pw>cfg.ph?'landscape':'';
- tiles.forEach((t,i)=>{let d=document.createElement('div');d.className='tile';d.textContent=String(i+1).padStart(2,'0');g.append(d)});
- $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm.`;
+ const g=$('tileGrid');g.innerHTML='';
+ const tileWidth=Number($('assemblyScale').value)||72;
+ const paperRatio=cfg.pw/cfg.ph;
+ const tileHeight=Math.max(38,Math.round(tileWidth/paperRatio));
+ g.style.gridTemplateColumns=`repeat(${cfg.cols},${tileWidth}px)`;
+ tiles.forEach((t,i)=>{
+  const d=document.createElement('div');d.className='assemblyTile';d.style.width=tileWidth+'px';d.style.minHeight=tileHeight+'px';
+  const thumb=document.createElement('canvas');thumb.width=120;thumb.height=Math.max(60,Math.round(120/paperRatio));
+  const tc=thumb.getContext('2d');tc.fillStyle='#fff';tc.fillRect(0,0,thumb.width,thumb.height);
+  let left,right,top,bottom;
+  if(cfg.manual){const cellW=cfg.W/cfg.cols,cellH=cfg.H/cfg.rows;left=Math.max(0,t.c*cellW-cfg.o/2);right=Math.min(cfg.W,(t.c+1)*cellW+cfg.o/2);top=Math.max(0,t.r*cellH-cfg.o/2);bottom=Math.min(cfg.H,(t.r+1)*cellH+cfg.o/2)}
+  else{left=t.c*cfg.stepX;top=t.r*cfg.stepY;right=Math.min(cfg.W,left+cfg.usableW);bottom=Math.min(cfg.H,top+cfg.usableH)}
+  const dx=left/cfg.W*img.naturalWidth,dy=top/cfg.H*img.naturalHeight;
+  const dw=(right-left)/cfg.W*img.naturalWidth,dh=(bottom-top)/cfg.H*img.naturalHeight;
+  const pad=5,scale=Math.min((thumb.width-pad*2)/Math.max(1,dw),(thumb.height-pad*2)/Math.max(1,dh));
+  const outW=dw*scale,outH=dh*scale;
+  tc.imageSmoothingEnabled=true;tc.imageSmoothingQuality='high';
+  if(dw>0&&dh>0)tc.drawImage(img,dx,dy,dw,dh,(thumb.width-outW)/2,(thumb.height-outH)/2,outW,outH);
+  const number=document.createElement('span');number.textContent=`${t.r+1}-${t.c+1}`;
+  const order=document.createElement('em');order.textContent=`${String(i+1).padStart(2,'0')} / ${tiles.length}`;
+  d.append(thumb,number,order);g.append(d);
+ });
+ $('assemblyTotal').textContent=tiles.length;
+ $('assemblyStatus').textContent=`${cfg.cols} columnas × ${cfg.rows} filas`;
+ $('assemblyScaleValue').textContent=tileWidth+' px';
+ $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm. El orden de impresión es de izquierda a derecha y de arriba hacia abajo.`;
 }
 function drawSimulator(){
  // Leer siempre los controles actuales; no depender de cfg, que puede contener un cálculo anterior.
