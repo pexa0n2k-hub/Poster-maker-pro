@@ -910,12 +910,20 @@ function calculate(){
    // Distribuye el área completa del póster entre las hojas manuales, conservando el solapamiento.
    stepX=cols===1?0:Math.max(0,(W-usableW)/(cols-1));
    stepY=rows===1?0:Math.max(0,(H-usableH)/(rows-1));
-  } else {cols=Math.max(1,Math.ceil((W-o)/stepX));rows=Math.max(1,Math.ceil((H-o)/stepY))}
+  } else {
+   if(stepX<=0||stepY<=0)throw Error('El solapamiento debe ser menor que el área imprimible.');
+   cols=W<=usableW?1:Math.max(2,Math.ceil((W-o)/stepX));
+   rows=H<=usableH?1:Math.max(2,Math.ceil((H-o)/stepY));
+   stepX=cols===1?0:(W-usableW)/(cols-1);
+   stepY=rows===1?0:(H-usableH)/(rows-1);
+  }
  cfg={W,H,pw,ph,m,o,usableW,usableH,stepX,stepY,cols,rows,manual:$('mode').value==='manual'};
  tiles=[];for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)tiles.push({r,c});
  $('count').textContent=tiles.length;$('gridSize').textContent=`${cols} × ${rows}`;
  const dpi=Math.min(img.naturalWidth/(W/2.54),img.naturalHeight/(H/2.54));$('dpi').textContent=Math.round(dpi)+' dpi';
- $('status').textContent=`Listo: ${tiles.length} hojas. ${W} × ${H} cm. Papel ${pw} × ${ph} cm · ${$('mode').value==='manual'?'división manual':'división automática'}.`;
+ const actualOX=cols>1?usableW-stepX:0,actualOY=rows>1?usableH-stepY:0;
+  const overlapNotice=$('mode').value==='manual'?'':` Solapamiento efectivo: ${actualOX.toFixed(2)} cm horizontal × ${actualOY.toFixed(2)} cm vertical.`;
+  $('status').textContent=`Listo: ${tiles.length} hojas. ${W} × ${H} cm. Papel ${pw} × ${ph} cm · ${$('mode').value==='manual'?'división manual':'división automática'}.${overlapNotice}`;
  $('pdf').disabled=$('png').disabled=$('jpg').disabled=false;
  drawGrid();drawSimulator();
  }catch(e){alert(e.message)}
@@ -928,8 +936,10 @@ function getTileBounds(t){
   left=Math.max(0,t.c*cellW-o/2);right=Math.min(W,(t.c+1)*cellW+o/2);
   top=Math.max(0,t.r*cellH-o/2);bottom=Math.min(H,(t.r+1)*cellH+o/2);
  }else{
-  left=t.c*stepX;top=t.r*stepY;
-  right=Math.min(W,left+usableW);bottom=Math.min(H,top+usableH);
+  left=cols===1?0:t.c*stepX;
+  top=rows===1?0:t.r*stepY;
+  right=Math.min(W,left+(W<=usableW?W:usableW));
+  bottom=Math.min(H,top+(H<=usableH?H:usableH));
  }
  return {left,right,top,bottom};
 }
@@ -958,7 +968,10 @@ function drawGrid(){
  $('assemblyTotal').textContent=tiles.length;
  $('assemblyStatus').textContent=`${cfg.cols} columnas × ${cfg.rows} filas`;
  $('assemblyScaleValue').textContent=tileWidth+' px';
- $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · solapamiento ${cfg.o} cm. El orden de impresión es de izquierda a derecha y de arriba hacia abajo.`;
+ const effectiveOverlapX=cfg.cols>1?cfg.usableW-cfg.stepX:0;
+  const effectiveOverlapY=cfg.rows>1?cfg.usableH-cfg.stepY:0;
+  const overlapText=cfg.manual?`solapamiento configurado ${cfg.o} cm`:`solapamiento efectivo ${effectiveOverlapX.toFixed(2)} cm horizontal × ${effectiveOverlapY.toFixed(2)} cm vertical (mínimo solicitado ${cfg.o} cm)`;
+  $('tileInfo').textContent=`${cfg.cols} columnas × ${cfg.rows} filas · ${cfg.pw} × ${cfg.ph} cm por hoja · ${overlapText}. El orden de impresión es de izquierda a derecha y de arriba hacia abajo.`;
 }
 function drawSimulator(){
  // El simulador compara el tamaño visual del póster con una persona de referencia.
