@@ -1,11 +1,10 @@
-# POSTER MAKER PRO v2.14 — SMART TILING
+# POSTER MAKER PRO v2.15 — CONTINUIDAD DE RECORTES
 
-- División automática: calcula el mínimo número de hojas que cubre el póster respetando el solapamiento solicitado como mínimo.
-- Distribuye uniformemente los inicios de las hojas entre los bordes del póster.
-- Cada hoja usa toda el área imprimible (salvo si el póster es menor que una hoja).
-- Mantiene escala global idéntica y evita la última franja diminuta.
-- Muestra el solapamiento efectivo horizontal y vertical. Puede superar el mínimo solicitado para repartir el póster en hojas completas y uniformes.
-- Vista previa, PDF, PNG y JPG comparten la misma geometría.
-- Se conservan las demás funciones de v2.13.
+- El renderizador PDF/PNG/JPG toma cada hoja desde coordenadas globales del póster.
+- Los límites de cada recorte se convierten a píxeles enteros compartidos; los bordes vecinos usan el mismo límite global, evitando redondeos independientes por hoja.
+- La posición física en cada página conserva la escala global y el solapamiento configurado/efectivo.
+- El fondo blanco de la imagen original se conserva como contenido; las zonas blancas no se tratan como errores.
+- Se conserva el diseño Dark Premium Print Studio y las demás funciones de v2.14.
 
-Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages.
+Reemplaza todos los archivos de la raíz de GitHub Pages.
+Genera un PDF de prueba y comprueba uniones antes de imprimir el póster completo.
