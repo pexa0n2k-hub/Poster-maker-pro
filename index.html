@@ -145,6 +145,13 @@ body.touch-device .preview{min-height:180px}
 .restoreBox input[type=range]{width:100%;accent-color:#a58bff;padding:0;background:transparent}
 .restoreStatus{padding:9px 11px;border-radius:9px;background:#091426;color:#cbd8f4;font-size:12px;min-height:38px}
 
+
+.cropMenuToggle{width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:12px 14px;border-radius:12px;font-weight:700;color:var(--cyan);background:rgba(8,18,34,.78);border:1px solid rgba(93,229,255,.24);cursor:pointer}
+.cropMenuToggle #cropMenuArrow{font-size:22px;transition:transform .22s ease}
+.cropMenuToggle[aria-expanded="true"] #cropMenuArrow{transform:rotate(180deg)}
+#cropContent[hidden]{display:none!important}
+#cropContent{padding-top:8px}
+
 </style>
 </head>
 <body>
@@ -183,7 +190,8 @@ body.touch-device .preview{min-height:180px}
 <div class="preview" id="sourcePreview"><span class="hint">Tu imagen aparecerá aquí</span></div>
 
 <section class="cropEditor" id="cropEditor">
- <h3>🖼️ Encuadre y composición</h3>
+ <button type="button" class="cropMenuToggle secondary" id="cropMenuToggle" aria-expanded="false" aria-controls="cropContent"><span>🖼️ Encuadre y composición</span><span id="cropMenuArrow">⌄</span></button>
+ <div id="cropContent" hidden>
  <p class="hint">Arrastra la imagen para acomodarla. Ajusta el zoom y elige cómo encajarla en el tamaño final.</p>
  <div class="cropStage" id="cropStage">
   <canvas id="cropCanvas" width="720" height="480"></canvas>
@@ -198,8 +206,8 @@ body.touch-device .preview{min-height:180px}
   <button type="button" class="secondary" id="resetCrop" disabled>Restablecer encuadre</button>
  </div>
  <small>El encuadre se aplica a la imagen que usarás para dividir e imprimir. Puedes volver a cargar el original si quieres empezar de nuevo.</small>
+ </div>
 </section>
-
 
 <div class="enhanceBox" id="enhanceBox">
  <h3>✨ Mejorar calidad de imagen</h3>
@@ -479,6 +487,13 @@ $('posterUnit').addEventListener('change',()=>{
  updatePosterUnit();drawSimulator();updateQualityInfo();drawCropPreview();if($('printAssistant'))analyzePrintAssistant();
 });
 updatePosterUnit();
+$('cropMenuToggle').addEventListener('click',()=>{
+ const content=$('cropContent');
+ const opening=content.hidden;
+ content.hidden=!opening;
+ $('cropMenuToggle').setAttribute('aria-expanded',String(opening));
+ $('cropMenuArrow').textContent=opening?'⌃':'⌄';
+});
 $('settingsToggle').addEventListener('click',()=>{
  const panel=$('appBackgroundTools');const opening=panel.hidden;
  panel.hidden=!opening;$('settingsToggle').setAttribute('aria-expanded',String(opening));
