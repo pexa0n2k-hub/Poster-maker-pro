@@ -1,4 +1,4 @@
-# POSTER MAKER PRO v2.15 — CONTINUIDAD DE RECORTES
+# POSTER MAKER PRO v2.16 — DISTRIBUCIÓN PRIMERO
 
 - El renderizador PDF/PNG/JPG toma cada hoja desde coordenadas globales del póster.
 - Los límites de cada recorte se convierten a píxeles enteros compartidos; los bordes vecinos usan el mismo límite global, evitando redondeos independientes por hoja.
@@ -8,3 +8,8 @@
 
 Reemplaza todos los archivos de la raíz de GitHub Pages.
 Genera un PDF de prueba y comprueba uniones antes de imprimir el póster completo.
+
+
+## v2.16
+- La pestaña Distribución de hojas aparece primero y abierta al entrar al Diseñador.
+- Comparar tamaño queda disponible como segunda pestaña y se abre al seleccionarla.

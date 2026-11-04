@@ -320,8 +320,8 @@ button:active{transform:scale(.985)}button.secondary{background:#252a32;color:#e
 </section>
 <section class="card">
 <h2>② Vista previa y simulador</h2>
-<div class="row"><button class="secondary" id="tabTiles">Distribución de hojas</button><button class="secondary" id="tabSim">Comparar tamaño</button></div>
-<div id="simPanel">
+<div class="row"><button id="tabTiles" aria-selected="true">Distribución de hojas</button><button class="secondary" id="tabSim" aria-selected="false">Comparar tamaño</button></div>
+<div id="simPanel" class="hidden">
 <div class="simWrap">
 <div class="simScene">
  <img class="personSvg" id="personModel" src="persona-silueta.png" alt="Silueta de referencia de 1.70 metros">
@@ -879,8 +879,8 @@ $('analyzeCurrent').onclick=()=>{
 function refreshIfReady(){if(img && $('calculate').dataset.ready==='1')calculate()}
 $('paper').onchange=()=>{$('customPaper').hidden=$('paper').value!=='custom';refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
 $('mode').onchange=()=>{let manual=$('mode').value==='manual';$('manualCols').hidden=!manual;$('manualRows').hidden=!manual;drawSimulator();refreshIfReady();if($('printAssistant'))analyzePrintAssistant()};
-$('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden')};
-$('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');drawSimulator()};
+$('tabTiles').onclick=()=>{$('tilesPanel').classList.remove('hidden');$('simPanel').classList.add('hidden');$('tabTiles').classList.remove('secondary');$('tabSim').classList.add('secondary');$('tabTiles').setAttribute('aria-selected','true');$('tabSim').setAttribute('aria-selected','false')};
+$('tabSim').onclick=()=>{$('simPanel').classList.remove('hidden');$('tilesPanel').classList.add('hidden');$('tabSim').classList.remove('secondary');$('tabTiles').classList.add('secondary');$('tabTiles').setAttribute('aria-selected','false');$('tabSim').setAttribute('aria-selected','true');drawSimulator()};
 ['width','height'].forEach(id=>{
  $(id).addEventListener('input',()=>{drawSimulator();updateQualityInfo();drawCropPreview();if($('printAssistant'))analyzePrintAssistant()});
  $(id).addEventListener('change',()=>{drawSimulator();updateQualityInfo();drawCropPreview();if($('printAssistant'))analyzePrintAssistant()});
