@@ -303,7 +303,7 @@ button:active{transform:scale(.985)}button.secondary{background:#252a32;color:#e
 </div>
 <div class="row">
 <div><label>Margen no imprimible (cm)</label><input id="margin" type="number" value="0.5" min="0" max="5" step=".1"></div>
-<div><label>Solapamiento (cm)</label><input id="overlap" type="number" value="1" min="0" max="5" step=".1"></div>
+<div><label>Solapamiento (cm)</label><input id="overlap" type="number" value="1" min="0" max="5" step=".1"></div><small class="hint" style="grid-column:1/-1">El solapamiento repite esa franja en hojas vecinas para recortar un borde y montar una hoja sobre otra.</small>
 </div>
 
 
@@ -920,6 +920,19 @@ function calculate(){
  drawGrid();drawSimulator();
  }catch(e){alert(e.message)}
 }
+function getTileBounds(t){
+ const {W,H,o,usableW,usableH,stepX,stepY,cols,rows,manual}=cfg;
+ let left,right,top,bottom;
+ if(manual){
+  const cellW=W/cols,cellH=H/rows;
+  left=Math.max(0,t.c*cellW-o/2);right=Math.min(W,(t.c+1)*cellW+o/2);
+  top=Math.max(0,t.r*cellH-o/2);bottom=Math.min(H,(t.r+1)*cellH+o/2);
+ }else{
+  left=t.c*stepX;top=t.r*stepY;
+  right=Math.min(W,left+usableW);bottom=Math.min(H,top+usableH);
+ }
+ return {left,right,top,bottom};
+}
 function drawGrid(){
  $('posterPreview').innerHTML='';let cv=document.createElement('canvas');cv.width=600;cv.height=Math.round(600*cfg.H/cfg.W);let ctx=cv.getContext('2d');ctx.drawImage(img,0,0,cv.width,cv.height);$('posterPreview').append(cv);
  const g=$('tileGrid');g.innerHTML='';
@@ -931,9 +944,7 @@ function drawGrid(){
   const d=document.createElement('div');d.className='assemblyTile';d.style.width=tileWidth+'px';d.style.minHeight=tileHeight+'px';
   const thumb=document.createElement('canvas');thumb.width=120;thumb.height=Math.max(60,Math.round(120/paperRatio));
   const tc=thumb.getContext('2d');tc.fillStyle='#fff';tc.fillRect(0,0,thumb.width,thumb.height);
-  let left,right,top,bottom;
-  if(cfg.manual){const cellW=cfg.W/cfg.cols,cellH=cfg.H/cfg.rows;left=Math.max(0,t.c*cellW-cfg.o/2);right=Math.min(cfg.W,(t.c+1)*cellW+cfg.o/2);top=Math.max(0,t.r*cellH-cfg.o/2);bottom=Math.min(cfg.H,(t.r+1)*cellH+cfg.o/2)}
-  else{left=t.c*cfg.stepX;top=t.r*cfg.stepY;right=Math.min(cfg.W,left+cfg.usableW);bottom=Math.min(cfg.H,top+cfg.usableH)}
+  const {left,right,top,bottom}=getTileBounds(t);
   const dx=left/cfg.W*img.naturalWidth,dy=top/cfg.H*img.naturalHeight;
   const dw=(right-left)/cfg.W*img.naturalWidth,dh=(bottom-top)/cfg.H*img.naturalHeight;
   const pad=5,scale=Math.min((thumb.width-pad*2)/Math.max(1,dw),(thumb.height-pad*2)/Math.max(1,dh));
@@ -991,18 +1002,10 @@ function renderTile(t,scale=1){
  const x=canvas.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,canvas.width,canvas.height);
  const s=canvas.width/pageW;
  // Each page covers its usable printable region, with overlap into adjacent tiles.
- let left,right,top,bottom;
- if(cfg.manual){
-  const cellW=W/cols,cellH=H/rows;
-  left=Math.max(0,t.c*cellW-o/2);right=Math.min(W,(t.c+1)*cellW+o/2);
-  top=Math.max(0,t.r*cellH-o/2);bottom=Math.min(H,(t.r+1)*cellH+o/2);
- }else{
-  left=t.c*stepX;top=t.r*stepY;
-  right=Math.min(W,left+usableW);bottom=Math.min(H,top+usableH);
- }
+ const {left,right,top,bottom}=getTileBounds(t);
  let srcX=left/W*img.naturalWidth,srcY=top/H*img.naturalHeight;
  let srcW=(right-left)/W*img.naturalWidth,srcH=(bottom-top)/H*img.naturalHeight;
- let destX=m*s,destY=m*s,destW=cfg.manual?usableW*s:(right-left)*s,destH=cfg.manual?usableH*s:(bottom-top)*s;
+ let destX=m*s,destY=m*s,destW=(right-left)*s,destH=(bottom-top)*s;
  // Scale the whole artwork to the requested final dimensions.
  x.drawImage(img,srcX,srcY,srcW,srcH,destX,destY,destW,destH);
  x.strokeStyle='#222';x.lineWidth=Math.max(1,s*.025);x.setLineDash([s*.08,s*.06]);

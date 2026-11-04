@@ -1,10 +1,9 @@
-# POSTER MAKER PRO v2.12 — DARK PREMIUM PRINT STUDIO
+POSTER MAKER PRO v2.13 — Alineación de recortes
 
-Rediseño visual Dark Premium + Print Studio:
-- Fondo grafito y superficies carbón.
-- Acentos champagne discretos y controles de alto contraste.
-- Tarjetas, paneles y navegación más limpios.
-- Interfaz adaptable a Android.
-- Se conservan todas las funciones existentes: diseñador, laboratorio, asistente, restauración, encuadre, simulador, fondo dinámico, unidades y silueta.
+- Límites de recorte centralizados en getTileBounds().
+- Vista previa y exportaciones PDF/PNG/JPG comparten exactamente la misma geometría.
+- La escala física se conserva también en las franjas finales; no se estiran para llenar la hoja.
+- El solapamiento repite intencionalmente una franja para recortar y superponer al montar.
+- Conserva el diseño Dark Premium Print Studio y las funciones previas.
 
-Actualiza sustituyendo todos los archivos de la raíz de GitHub Pages.
+Reemplaza todos los archivos de la raíz de GitHub Pages.
