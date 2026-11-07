@@ -1037,9 +1037,19 @@ function renderTile(t,scale=1){
  if(t.r<rows-1)neighbors.push({side:'bottom',bounds:getTileBounds({r:t.r+1,c:t.c})});
  if(guides){
   x.save();x.fillStyle='rgba(0,170,220,.16)';x.strokeStyle='rgba(0,120,170,.75)';x.lineWidth=Math.max(1,s*.012);x.setLineDash([s*.08,s*.05]);
-  for(const n of neighbors){const b=n.bounds,il=Math.max(left,b.left),ir=Math.min(right,b.right),it=Math.max(top,b.top),ib=Math.min(bottom,b.bottom);if(ir<=il||ib<=it)continue;
-   const rx=posX(il),ry=posY(it),rw=(ir-il)*s,rh=(ib-it)*s;x.fillRect(rx,ry,rw,rh);x.strokeRect(rx,ry,rw,rh);
-   if(rw>s*1.5&&rh>s*1.5){x.fillStyle='rgba(0,75,110,.9)';x.font=`bold ${Math.max(8,s*.22)}px Arial`;x.fillText('SOLAPE',rx+Math.min(4,rw*.08),ry+Math.min(rh-3,Math.max(10,rh*.5)));x.fillStyle='rgba(0,170,220,.16)';}
+  // Una sola guía por unión: se dibuja únicamente en la hoja base
+  // (la que queda debajo). La hoja que se monta encima queda limpia.
+  for(const n of neighbors){
+   if(n.side!=='right'&&n.side!=='bottom')continue;
+   const b=n.bounds,il=Math.max(left,b.left),ir=Math.min(right,b.right),it=Math.max(top,b.top),ib=Math.min(bottom,b.bottom);
+   if(ir<=il||ib<=it)continue;
+   const rx=posX(il),ry=posY(it),rw=(ir-il)*s,rh=(ib-it)*s;
+   x.fillRect(rx,ry,rw,rh);x.strokeRect(rx,ry,rw,rh);
+   if(rw>s*1.5&&rh>s*1.5){
+    x.fillStyle='rgba(0,75,110,.9)';x.font=`bold ${Math.max(8,s*.22)}px Arial`;
+    x.fillText('SOLAPE',rx+Math.min(4,rw*.08),ry+Math.min(rh-3,Math.max(10,rh*.5)));
+    x.fillStyle='rgba(0,170,220,.16)';
+   }
   }
   x.restore();
  }

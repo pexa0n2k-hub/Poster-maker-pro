@@ -19,3 +19,7 @@ Genera un PDF de prueba y comprueba uniones antes de imprimir el póster complet
 - Guías opcionales de solapamiento: sombrean las franjas compartidas entre hojas.
 - Líneas de corte opcionales: indican el borde de salida derecho e inferior; la hoja siguiente conserva su franja de solape.
 - Las ayudas se dibujan sobre cada hoja exportada en PDF, PNG y JPG sin cambiar la geometría ni la escala de los recortes.
+
+
+## v2.18 — Guía única de solapamiento
+Las guías azules se dibujan únicamente en la hoja base (uniones hacia la derecha y hacia abajo). La hoja que se monta encima queda sin rectángulo azul. No se modifican los límites de recorte, la escala ni las líneas de corte.
